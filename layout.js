@@ -14,16 +14,14 @@ export default function Layout({children,description,appName}) {
           content={description ? description : "Layout Component"}
         />
       </Head>
-      <body>
-        <div className="base">  
-          {children}
-          <div className="item space-ha"></div>
-          <div className="item space-hc"></div>
-          <div className="item space-ma"></div>
-          <div className="item space-mc"></div>
-          <div className="item space-fb"><i>{appName ? appName : "Layout Component"} © {now.getFullYear()} - Todos os Direitos Reservados<br/><Version></Version></i></div>
-        </div>
-      </body>
+      <div className="base">  
+        {children}
+        <div className="item space-ha"></div>
+        <div className="item space-hc"></div>
+        <div className="item space-ma"></div>
+        <div className="item space-mc"></div>
+        <div className="item space-fb"><i>{appName ? appName : "Layout Component"} © {now.getFullYear()} - Todos os Direitos Reservados<br/><Version></Version></i></div>
+      </div>
     </div>
   )
 }
