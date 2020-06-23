@@ -1,5 +1,7 @@
 import Head from 'next/head'
 import Version from '../version-app'
+import Loading from '../components/loading'
+import Msg from '../components/msg'
 
 export default function Layout({children,description,appName}) {
 
@@ -14,6 +16,8 @@ export default function Layout({children,description,appName}) {
           content={description ? description : "Layout Component"}
         />
       </Head>
+      <Loading></Loading>
+      <Msg></Msg>
       <div className="base">  
         {children}
         <div className="item space-ha"></div>
