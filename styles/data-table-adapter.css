@@ -38,6 +38,8 @@ Importe este arquivo como style global no arquivo pages/_app.js
   background-color:var(--color-yellow);
 }
 
-table{
+.table{
+  position: relative;
   min-width:50%;
+  max-width:100%;
 }

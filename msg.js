@@ -1,7 +1,5 @@
-var observerData = {
-  text:'Mensagem?'
-}
-  
+var observerData = {}
+
 class Observable {
   constructor() {
     this.observers = [];
@@ -26,7 +24,11 @@ export default class extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      text:observerData.text
+      text:'Mensagem?',
+      textYes:'Ok',
+      textNo:'Cancelar',
+      callbackYes:closeMsg,
+      callbackNo:closeMsg
     };
   }
 
@@ -36,15 +38,19 @@ export default class extends React.Component {
 
   update = () => {
     this.setState({
-      text:observerData.text
+      text:observerData.text,
+      textYes:observerData.textYes,
+      textNo:observerData.textNo,
+      callbackYes:observerData.callbackYes,
+      callbackNo:observerData.callbackNo
     })
   }
 
   onClick = (e) => {
     if(e.target.name=='yes'){
-      closeMsg()
+      this.state.callbackYes()
     }else if(e.target.name=='no'){
-      closeMsg()
+      this.state.callbackNo()
     }
   }
 
@@ -57,8 +63,8 @@ export default class extends React.Component {
           </div>
           <div id="buttonsMsg" name="buttonsMsg" className="col-12">
             <div className="col-12">
-              <button id="yes" name="yes" type="button" className="btn btn-success btn-lg m-2" onClick={this.onClick}>Ok</button>
-              <button id="no" name="no" type="button" className="btn btn-warning btn-lg m-2" onClick={this.onClick}>Cancelar</button>
+              <button id="yes" name="yes" type="button" className="btn btn-success btn-lg m-2" onClick={this.onClick}>{this.state.textYes}</button>
+              <button id="no" name="no" type="button" className="btn btn-warning btn-lg m-2" onClick={this.onClick}>{this.state.textNo}</button>
             </div>
           </div>
           <div id="textMsgB" name="textMsgB" className="col-12">
@@ -70,10 +76,28 @@ export default class extends React.Component {
 }
 
 export function openMsg(data){
+  const stdObserverData = {
+    text:'Mensagem?',
+    textYes:'Ok',
+    textNo:'Cancelar',
+    callbackYes:closeMsg,
+    callbackNo:closeMsg
+  }
+  observerData = stdObserverData
   if(typeof data !== 'undefined'){
     if(typeof data.text !== 'undefined'){
       if(data.text.length>0){
         observerData.text = data.text
+      }
+    }
+    if(typeof data.textYes !== 'undefined'){
+      if(data.textYes.length>0){
+        observerData.textYes = data.textYes
+      }
+    }
+    if(typeof data.textNo !== 'undefined'){
+      if(data.textNo.length>0){
+        observerData.textNo = data.textNo
       }
     }
     if(typeof data.type !== 'undefined'){
@@ -84,6 +108,12 @@ export function openMsg(data){
       }else{
         document.getElementById("baseMsg").style.backgroundColor = "rgba(0,40,70,0.95)";
       }
+    }
+    if(typeof data.callbackYes !== 'undefined'){
+      observerData.callbackYes = data.callbackYes
+    }
+    if(typeof data.callbackNo !== 'undefined'){
+      observerData.callbackNo = data.callbackNo
     }
   }
 
