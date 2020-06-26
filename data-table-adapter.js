@@ -125,7 +125,7 @@ export default class extends React.Component {
                   <tr className="dtaTop">
                     <th scope="col">
                       <div align="center">
-                        {this.props.title} - Nenhum Dado Carregado
+                        {this.props.title} (0)
                       </div>
                     </th>
                   </tr>
