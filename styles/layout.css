@@ -2,18 +2,12 @@
 Importe este arquivo como style global no arquivo pages/_app.js
 */
 
-html,body{
-  margin: 0px;
-  padding: 0px;
-  color:#2B6AAB;
-}
-
-.item{
+.layout-item{
   width:100%;
   height:100%;
 }
 
-.base{
+.layout-base{
   display: grid;
   width: 100vw;
   height: 100vh;
@@ -21,13 +15,13 @@ html,body{
   justify-items: center;
   grid-template: 
     "ha hb hc" 10vh
-    "ma mb mc" 80vh 
-    "fb fb fb" 10vh
+    "ma mb mc" 75vh 
+    "fb fb fb" 15vh
     /1fr 20fr 1fr;
 }
 
 @media only screen and (orientation: landscape) and (max-width: 992px){
-  .base{
+  .layout-base{
     grid-template: 
     "ha hb hc" 15vh
     "ma mb mc" 70vh 
@@ -36,15 +30,15 @@ html,body{
   }
 }
 
-.space-ha,.space-hb,.space-hc{
+.layout-space-ha,.layout-space-hb,.layout-space-hc{
   border-bottom: 2px solid #2B6AAB;
 }
 
-.space-ha{ 
+.layout-space-ha{ 
   grid-area: ha;
 }
 
-.space-hb{ 
+.layout-space-hb{ 
   grid-area: hb;
   display: flex;
   align-items: center;
@@ -53,26 +47,26 @@ html,body{
   font-size: 20px;
 }
 
-.space-hc{ 
+.layout-space-hc{ 
   grid-area: hc;
 }
 
-.space-ma{ 
+.layout-space-ma{ 
   grid-area: ma;
 }
 
-.space-mb{
+.layout-space-mb{
   grid-area: mb;
   display: block;
   overflow: auto;
   padding: 15px;
 }
 
-.space-mc{ 
+.layout-space-mc{ 
   grid-area: mc;
 }
 
-.space-fb{
+.layout-space-fb{
   grid-area: fb;
   display: flex;
   align-items: center;

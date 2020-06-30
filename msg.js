@@ -59,7 +59,7 @@ export default class extends React.Component {
       <div id="baseMsg" name="baseMsg" className="col-12">
         <div id="msg" name="msg" className="col-12">
           <div id="textMsg" name="textMsg" className="col-12">
-            {this.state.text}
+            Mensagem?
           </div>
           <div id="buttonsMsg" name="buttonsMsg" className="col-12">
             <div className="col-12">
@@ -87,7 +87,7 @@ export function openMsg(data){
   if(typeof data !== 'undefined'){
     if(typeof data.text !== 'undefined'){
       if(data.text.length>0){
-        observerData.text = data.text
+        document.getElementById("textMsg").innerHTML = data.text
       }
     }
     if(typeof data.textYes !== 'undefined'){
@@ -101,12 +101,17 @@ export function openMsg(data){
       }
     }
     if(typeof data.type !== 'undefined'){
-      if(data.type==1){
-        document.getElementById("baseMsg").style.backgroundColor = "rgba(20,100,20,0.95)";
-      }else if(data.type==-1){
-        document.getElementById("baseMsg").style.backgroundColor = "rgba(120,10,10,0.95)";
+      if(typeof data.blackout === 'undefined'){
+        var blackout = "0.95"
       }else{
-        document.getElementById("baseMsg").style.backgroundColor = "rgba(0,40,70,0.95)";
+        var blackout = "1"
+      }
+      if(data.type==1){
+        document.getElementById("baseMsg").style.backgroundColor = "rgba(20,100,20," + blackout + ")";
+      }else if(data.type==-1){
+        document.getElementById("baseMsg").style.backgroundColor = "rgba(120,10,10," + blackout + ")";
+      }else{
+        document.getElementById("baseMsg").style.backgroundColor = "rgba(0,40,70," + blackout + ")";
       }
     }
     if(typeof data.callbackYes !== 'undefined'){
