@@ -1,9 +1,36 @@
-import { setCols,setSubState } from '../libs/functions'
+/*
+Definições das propriedades (props):
+
+callbackOnClickCell - Função de retorno do click em uma célula
+
+collection - A coleção ou tabela do banco de dados
+
+config - Objeto contendo informações de configuração dessa tabela vindo de um banco de dados
+
+data - Dados da tabela. Um objeto contendo pelo menos o campo _id
+
+editable - Quando true permite editar as configurações da tabela
+
+margin -  É uma classe adicional adicionada na div base do component, essa classe pode 
+          ser específica definida em um css ou usando as definições do bootstrap como 
+          por exemplo: 
+
+          mt-2
+
+          (obs: essa insere uma margem do tipo 2 no topo do objeto)
+
+order - Array com os nomes das colunas na ordem que devem aparecer
+
+title - Título da tabela 
+*/
+
+import { setCols,setSubState,zeroLeft } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from '../components/loading'
 import { openMsg } from '../components/msg';
 
 var cont = -1
+const nowTemp = new Date();
 
 export default class extends React.Component {
   constructor(props) {
@@ -93,6 +120,11 @@ export default class extends React.Component {
     });
   }
 
+  formatData = (e) => {
+    nowTemp.setTime(e)
+    return zeroLeft(nowTemp.getDate(),2) + '/' + zeroLeft(nowTemp.getMonth()+1,2) + '/' + nowTemp.getFullYear() + ' ' + zeroLeft(nowTemp.getHours(),2) + ':' + zeroLeft(nowTemp.getMinutes(),2) + ':' + zeroLeft(nowTemp.getSeconds(),2)
+  }
+
   render(){
     cont = -1
     if(typeof this.props.collection === 'undefined'){
@@ -115,9 +147,29 @@ export default class extends React.Component {
           </div>
         </div>
       )
+    }else if(typeof this.props.data === 'undefined'){
+        return (
+          <div className={this.props.margin}>
+            <div className="form-row">
+              <div className={setCols(12,12,12,12,12)}>
+                <table className="table table-bordered">
+                  <thead>
+                    <tr className="dtaTop">
+                      <th scope="col">
+                        <div align="center">
+                          Informe o data
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+            </div>
+          </div>
+        )
     }else if(this.props.data.length==0){
       return (
-        <div>
+        <div className={this.props.margin}>
           <div className="form-row">
             <div className={setCols(12,12,12,12,12)}>
               <table className="table table-bordered">
@@ -206,8 +258,24 @@ export default class extends React.Component {
         }
       })
 
+      var maskOrder = []
+      if(this.props.order){
+        Object.values(this.props.order).map(v => {
+          if(typeof mask[v] !== 'undefined'){
+            maskOrder[v] = mask[v]
+          }
+        })
+        Object.keys(mask).map(k => {
+          if(typeof maskOrder[k] === 'undefined'){
+            maskOrder[k] = mask[k]
+          }
+        })
+      }else{
+        maskOrder = mask
+      }
+
       return (
-        <div>
+        <div className={this.props.margin}>
           {this.state.edit==true ? (
             <div className="form-row" id="baseConfig" name="baseConfig">
               <div className={setCols(12,12,4,3,3)}>
@@ -230,7 +298,7 @@ export default class extends React.Component {
                 <label>Parameter</label>
                 <input type="text" className="form-control" name="parameter" value={this.state.formConfig.parameter} onChange={this.onChangeFormConfig}/>
               </div>
-              <div className={setCols(12,12,6,4,4)}>
+              <div className={setCols(12,12,6,6,4)}>
                 <label>Class</label>
                 <input type="text" className="form-control" name="className" value={this.state.formConfig.className} onChange={this.onChangeFormConfig}/>
               </div>
@@ -280,11 +348,11 @@ export default class extends React.Component {
                 </thead>
                 <thead>
                   <tr className="dtaTop">
-                    {Object.keys(mask).map(k => (
+                    {Object.keys(maskOrder).map(k => (
                       (display[k]=="true" || this.state.edit==true) ? (
                         <th key={k} scope="col" className={display[k]=="true" ? "" : "stdRed"}>
                           <div align={align[k]} onClick={this.onClick}>
-                            {mask[k]}
+                            {maskOrder[k]}
                           </div>
                         </th>
                       ):null
@@ -294,7 +362,7 @@ export default class extends React.Component {
                 {this.props.data.map(data => (
                   <tbody key={data._id}>
                     <tr className={this.getRowClass()}>
-                      {Object.keys(data).map(k => (
+                      {Object.keys(maskOrder).map(k => (
                         (display[k]=="true" || this.state.edit==true) ? (
                           (k == 'id' || k=='_id') ? (
                             <th key={k} scope="row">
@@ -310,11 +378,19 @@ export default class extends React.Component {
                                 </div>
                               </td>
                             ):(
-                              <td key={k}>
-                                <div name={data['_id'] + '#' + k} align={align[k]} onClick={this.props.callbackOnClickCell}>
-                                  {data[k]}
-                                </div>
-                              </td>
+                              (type[k]=='date') ? ( 
+                                <td key={k}>
+                                  <div name={data['_id'] + '#' + k} align={align[k]} onClick={this.props.callbackOnClickCell}>
+                                    {this.formatData(data[k])}
+                                  </div>
+                                </td>
+                              ):(
+                                <td key={k}>
+                                  <div name={data['_id'] + '#' + k} align={align[k]} onClick={this.props.callbackOnClickCell}>
+                                    {data[k]}
+                                  </div>
+                                </td>
+                              )
                             )
                           )
                         ):null
