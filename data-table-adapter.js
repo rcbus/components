@@ -128,6 +128,12 @@ export default class extends React.Component {
     return zeroLeft(nowTemp.getDate(),2) + '/' + zeroLeft(nowTemp.getMonth()+1,2) + '/' + nowTemp.getFullYear() + ' ' + zeroLeft(nowTemp.getHours(),2) + ':' + zeroLeft(nowTemp.getMinutes(),2) + ':' + zeroLeft(nowTemp.getSeconds(),2)
   }
 
+  onClickCell = (e) => {
+    if(typeof this.props.callbackClickCell !== 'undefined'){
+      this.props.callbackClickCell(e)
+    }
+  }
+
   render(){
     cont = -1
     if(typeof this.props.collection === 'undefined'){
@@ -429,27 +435,27 @@ export default class extends React.Component {
                       {Object.keys(maskOrder).map(k => (
                         (display[k]=="true" || this.state.edit==true) ? (
                           (k == 'id' || k=='_id') ? (
-                            <th key={k} scope="row" name={data['_id'] + '#' + k} onClick={() => this.props.callbackClickCell(data['_id'])}>
+                            <th key={k} scope="row" name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
                               <div align={align[k]}>
                                 {data[k]}
                               </div>
                             </th>
                           ):(
                             (type[k]=='text' && parameter[k].length>0) ? (
-                              <td key={k} className={typeof className[k] !== 'undefined' ? typeof className[k][data[k]] !== 'undefined' ? className[k][data[k]] : typeof className[k][0] !== 'undefined' ? className[k][0] : null : null} name={data['_id'] + '#' + k} onClick={() => this.props.callbackClickCell(data['_id'])}>
+                              <td key={k} className={typeof className[k] !== 'undefined' ? typeof className[k][data[k]] !== 'undefined' ? className[k][data[k]] : typeof className[k][0] !== 'undefined' ? className[k][0] : null : null} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
                                 <div align={align[k]}>
                                   {typeof parameter[k] !== 'undefined' ? typeof parameter[k][data[k]] !== 'undefined' ? parameter[k][data[k]] : typeof parameter[k][0] !== 'undefined' ? parameter[k][0] : null : null}
                                 </div>
                               </td>
                             ):(
                               (type[k]=='date') ? ( 
-                                <td key={k} name={data['_id'] + '#' + k} onClick={() => this.props.callbackClickCell(data['_id'])}>
+                                <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
                                   <div align={align[k]}>
                                     {this.formatData(data[k])}
                                   </div>
                                 </td>
                               ):(
-                                <td key={k} name={data['_id'] + '#' + k} onClick={() => this.props.callbackClickCell(data['_id'])}>
+                                <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
                                   <div align={align[k]}>
                                     {data[k]}
                                   </div>
