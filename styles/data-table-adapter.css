@@ -4,6 +4,7 @@ Importe este arquivo como style global no arquivo pages/_app.js
 
 .dtaTop{
   background-color:var(--color-dark-blue);
+  cursor: pointer;
 }
 .dtaTopSubA{
   background-color:#17a2b8;
