@@ -9,6 +9,10 @@ callbackClick - A função que será executada toda vez que houver um click em u
 
 callbackReset - A função que será executada para resetar o formulário.
 
+callbackUpdate - A função que será executada para atualizar as informações do formulário.
+
+callbackDab - A função que será executada quando finalizar o DAB.
+
 collection - A coleção ou tabela do banco de dados
 
 content - É um array de objetos que contém as definições de cada componente do form. 
@@ -27,7 +31,7 @@ content - É um array de objetos que contém as definições de cada componente 
               type:'button',
               className:'btn-lg btn-success btn-block',
               name:'save',
-              innerHTML:'Salvar'
+              innerHTML:'Salvar',
               where:[{'status':'1'}]
             }
           ]
@@ -48,15 +52,23 @@ msg - É um objeto e os atributos/propriedades desse objeto são as iniciais do 
       {
         c:{confirm:'',success:'Dados cadastrado com sucesso!'},
         u:{confirm:'',success:'Dados alterados com sucesso!'},
-        d:{confirm:'Deseja desativar?',success:'Desativado com sucesso!'}
+        d:{confirm:'Deseja desativar?',success:'Desativado com sucesso!'},
         a:{confirm:'Deseja ativar?',success:'Ativado com sucesso!'},
         b:{confirm:'Deseja deseja bloquear?',success:'Bloqueado com sucesso!'}
       }
 
+next -  É um objeto contendo o próximo id da lista e uma função para seta-lo:
+        
+        {{id:next,set:clickCell}}
+
+prev -  É um objeto contendo o id anterior da lista e uma função para seta-lo:
+      
+        {{id:prev,set:clickCell}}
+
 resetEvery - Quanto true reseta o formulário toda vez que o mesmo é alterado.
 */
 
-import { setCols,setSubState, getSession, sign } from '../libs/functions'
+import { setCols,setSubState, getSession, sign,decimal, zeroLeft } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from './loading'
 import { openMsg } from './msg';
@@ -64,11 +76,19 @@ import { openMsg } from './msg';
 export default class extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      firstRender:true
+    }
+    this.focus = React.createRef();
   }
 
-  onClick = (e) => {
+  onClick = (e,callback) => {
     var form = this.props.data
-    if(e.target.name=="cancel"){
+    if(e.target.name=="register"){
+      if(this.focus.current != null){ 
+        this.focus.current.focus() 
+      }
+    }else if(e.target.name=="cancel"){
       if(this.props.callbackReset){
         this.props.callbackReset()
       }
@@ -106,6 +126,9 @@ export default class extends React.Component {
         this.dab(form,'b')
       }
     }
+    if(typeof callback !== 'undefined'){
+      callback()
+    }
   }
 
   save = (form) => {
@@ -126,7 +149,7 @@ export default class extends React.Component {
           }
         }else{
           if(this.props.callbackUpdate){
-            this.props.callbackUpdate()
+            this.props.callbackUpdate(res.data[0])
           }
         }
       }  
@@ -158,13 +181,11 @@ export default class extends React.Component {
           openMsg({text:(this.verifyMsgSuccess('b') ? this.verifyMsgSuccess('b') : 'Dado bloqueado com sucesso!'),type:1})
         }
         
-        if(this.props.resetEvery===true){
+        if(this.props.callbackDab){
+          this.props.callbackDab()
+        }else if(this.props.resetEvery===true){
           if(this.props.callbackReset){
             this.props.callbackReset()
-          }
-        }else{
-          if(this.props.callbackUpdate){
-            this.props.callbackUpdate()
           }
         }
       }  
@@ -215,9 +236,44 @@ export default class extends React.Component {
     return msg
   }
 
+  getData = (k,t,p) => {
+    if(typeof this.props.data[k] !== 'undefined'){
+      if(t=='number'){
+        if(this.state.firstRender===true){
+          this.setState({firstRender:false})
+          return parseFloat(this.props.data[k]).toFixed(p)
+        }else{
+          return this.props.data[k]  
+        }
+      }else{
+        return this.props.data[k]
+      }
+    }else{
+      return ''
+    }
+  }
+
+  step = (p) => {
+    if(typeof p === 'undefined'){
+      return 1
+    }else{
+      return "0." + zeroLeft("1",(p))
+    }
+  }
+
+  prev = (e) => {
+    this.setState({firstRender:true})
+    this.props.prev.set(e)
+  }
+
+  next = (e) => {
+    this.setState({firstRender:true})
+    this.props.next.set(e)
+  }
+
   render(){
     return (
-      <div className="form-base form-row">
+      <form autoComplete="off">
         {!this.props.collection ? (
           <div>Informe a collection</div>
         ):!this.props.api ? (
@@ -229,24 +285,66 @@ export default class extends React.Component {
         ):!this.props.callbackChange ? (
           <div>Informe o callbackChange</div>
         ):(
-          Object.values(this.props.content).map(c => (
-            (c.where ? this.verifyWhere(c.where) : true) ? (  
-              <div key={c.name} className={c.cols + " " + this.props.margin}>
-                {c.label ? (
-                  <label>{c.label}</label>
-                ):null}
-                {c.type=='text' ? null:
-                c.type=='textarea' ? (
-                <textarea name={c.name} className="form-control" rows={c.rows ? c.rows : "5"} onChange={this.props.callbackChange} value={this.props.data[c.name]}></textarea>
-                ):
-                c.type=='button' ? (
-                  <button type="button" name={c.name} className={"btn " + c.className} onClick={this.onClick}>{c.innerHTML}</button>
-                ):null}
+          <div>
+            <div className="form-base form-row">
+              {Object.values(this.props.content).map(c => (
+                (c.where ? this.verifyWhere(c.where) : true) ? (  
+                  <div key={c.name} className={c.cols + " " + this.props.margin}>
+
+                    {c.label ? (
+                      <label>{c.label}</label>
+                    ):null}
+
+                    {c.type=='_id' ? (
+                      
+                      <div className="btn-group special">
+                        <button type="button" name="prev" className="btn btn-secondary" disabled={this.props.prev.id===false ? true : false} onClick={() => this.prev(this.props.prev.id)}>{"<"}</button>
+                        <button type="button" name={c.name} className="middle btn btn-outline-dark" disabled>{this.getData(c.name,c.type,c.precision)}</button>
+                        <button type="button" name="next" className="btn btn-secondary" disabled={this.props.next.id===false ? true : false} onClick={() => this.next(this.props.next.id)}>{">"}</button>
+                      </div>
+
+                    ):c.type=='status' ? (
+
+                      <div>
+                        <div className={"std text-center " + c.className[this.getData(c.name,c.type,c.precision)]}>{c.mask[this.getData(c.name,c.type,c.precision)]}</div>
+                      </div>
+
+                    ):c.type=='text' ? (
+                    
+                      <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.props.callbackChange} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false}/>
+                    
+                    ):c.type=='number' ? (
+                    
+                      <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.props.callbackChange} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false}/>
+                    
+                    ):c.type=='textarea' ? (
+                    
+                      <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.props.callbackChange} value={this.getData(c.name,c.type,c.precision)}></textarea>
+                    
+                    ):c.type=='button' ? (
+                      
+                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.onClick(e,c.callback)}>{c.innerHTML}</button>
+                    
+                    ):null}
+                  </div>
+                ):null
+              ))}
+            </div>
+          
+            {this.props.button ? (
+              <div className="form-row">
+                {Object.values(this.props.button).map(c => (
+                  (c.where ? this.verifyWhere(c.where) : true) ? (  
+                    <div key={c.name} className={c.cols + " " + this.props.margin}>
+                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.onClick(e,c.callback)}>{c.innerHTML}</button>
+                    </div>
+                  ):null
+                ))}
               </div>
-            ):null
-          ))
+            ):null}
+          </div>
         )}
-      </div>
+      </form>
     )
   }
 }
