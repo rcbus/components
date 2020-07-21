@@ -10,7 +10,7 @@ Importe este arquivo como style global no arquivo pages/_app.js
 .layout-header-editable-base{
   display: grid;
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   align-items: top;
   justify-items: center;
   grid-template: 
@@ -35,6 +35,7 @@ Importe este arquivo como style global no arquivo pages/_app.js
   cursor: pointer;
   z-index: 700;
   font-size: 14px;
+  min-height: 10vh;
 }
 
 .layout-header-editable-space-m{
@@ -68,6 +69,18 @@ Importe este arquivo como style global no arquivo pages/_app.js
 @media only screen and (max-width: 400px){
   .layout-header-editable-space-h,h5{ 
     font-size: 14px;
+  }
+  .layout-header-editable-base{
+    grid-template: 
+    "h" 18vh
+    "m" 82vh
+    /1fr;
+  }
+  .top-login-version-home-logout{
+    min-height: 94px;
+  }
+  .layout-header-editable-space-m{ 
+    margin-top: 30px;
   }
 }
 

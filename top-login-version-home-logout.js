@@ -17,7 +17,7 @@ export default function Top({className}){
     }
 
     return(
-        <div className={className} onKeyPress={keyPress} onKeyDown={keyPress}>
+        <div className={className + " top-login-version-home-logout"} onKeyPress={keyPress} onKeyDown={keyPress}>
             <div name="header" className={setCols(12,6,8,8,10) + " text-right"}>
                 <b>{getSession("userData").userName + " @ " + getSession("userData").branchName} <Version align="right"/></b>
             </div>
