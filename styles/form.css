@@ -5,3 +5,6 @@ Importe este arquivo como style global no arquivo pages/_app.js
 .form-base{
   margin-top: 20px;
 }
+.form-base.withoutMargin{
+  margin-top: 0px;
+}

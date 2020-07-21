@@ -1,28 +1,20 @@
-/*
-Definições das propriedades (props):
+/* ########## Definições das propriedades (props): ##########
 
-callbackClickCell - Função de retorno do click em uma célula
+callbackClickCell: Função de retorno do click em uma célula
+collection: A coleção ou tabela do banco de dados
+config: Objeto contendo informações de configuração dessa tabela vindo de um banco de dados
+data: Dados da tabela. Um objeto contendo pelo menos o campo _id
+editable: Quando true permite editar as configurações da tabela
+margin: É uma classe adicional adicionada na div base do component, essa classe pode 
+        ser específica definida em um css ou usando as definições do bootstrap como 
+        por exemplo: 
 
-collection - A coleção ou tabela do banco de dados
+          mt-2 (obs: essa insere uma margem do tipo 2 no topo do objeto)
 
-config - Objeto contendo informações de configuração dessa tabela vindo de um banco de dados
+order: Array com os nomes das colunas na ordem que devem aparecer
+title: Título da tabela 
 
-data - Dados da tabela. Um objeto contendo pelo menos o campo _id
-
-editable - Quando true permite editar as configurações da tabela
-
-margin -  É uma classe adicional adicionada na div base do component, essa classe pode 
-          ser específica definida em um css ou usando as definições do bootstrap como 
-          por exemplo: 
-
-          mt-2
-
-          (obs: essa insere uma margem do tipo 2 no topo do objeto)
-
-order - Array com os nomes das colunas na ordem que devem aparecer
-
-title - Título da tabela 
-*/
+########## Definições das propriedades (props): ########## */
 
 import { setCols,setSubState,zeroLeft } from '../libs/functions'
 import { api } from '../libs/api'
@@ -196,6 +188,31 @@ export default class extends React.Component {
             </div>
           </div>
         )
+    }else if(this.props.data==null){
+      return (
+        <div className={this.props.margin}>
+          <div className="form-row">
+            <div className={setCols(12,12,12,12,12)}>
+              <table className="table table-bordered">
+                <thead>
+                  <tr className="dtaTop">
+                    <th scope="col">
+                      <div className="form-row mb-0">
+                        <div align="left" className={setCols(6,6,6,6,6)}>
+                          Carregando...
+                        </div>
+                        <div align="right" className={setCols(6,6,6,6,6)}>
+                          <button type="button" name="edit" className={this.state.edit==false ? "btn btn-sm btn-secundary" : "btn btn-sm btn-warning"} onClick={this.onClick}>{this.state.edit==false ? "Editar" : "Fechar Edição"}</button>
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+          </div>
+        </div>
+      )
     }else if(this.props.data.length==0){
       return (
         <div className={this.props.margin}>
@@ -255,49 +272,54 @@ export default class extends React.Component {
         }
       })
 
-      Object.keys(this.props.data[0]).map(k => {
-        mask[k] = k
-        type[k] = 'text'
-        parameter[k] = []
-        className[k] = []
-        align[k] = 'left'
-        display[k] = 'false'
-        searchable[k] = 'false'
-        if(typeof config[k] !== 'undefined'){
-          if(config[k].mask.length>0){
-            mask[k] = config[k].mask  
-          }
-          if(config[k].parameter.length>0){
-            if(config[k].parameter.indexOf('#')==-1){
-              parameter[k][0] = config[k].parameter  
-            }else{  
-              var parameterTemp = config[k].parameter.split(',')  
-              Object.values(parameterTemp).map(v => {
-                if(typeof parameter[k] === 'undefined'){ parameter[k] = [] }
-                parameter[k][v.substr(0,v.indexOf("#"))] = v.substr(v.indexOf("#")+1)
-              })
+      Object.values(this.props.data).map(v => {
+        Object.keys(v).map(k => {
+          if(typeof mask[k] === 'undefined'){
+            mask[k] = k
+            type[k] = 'text'
+            parameter[k] = []
+            className[k] = []
+            align[k] = 'left'
+            display[k] = 'false'
+            searchable[k] = 'false'
+
+            if(typeof config[k] !== 'undefined'){
+              if(config[k].mask.length>0){
+                mask[k] = config[k].mask  
+              }
+              if(config[k].parameter.length>0){
+                if(config[k].parameter.indexOf('#')==-1){
+                  parameter[k][0] = config[k].parameter  
+                }else{  
+                  var parameterTemp = config[k].parameter.split(',')  
+                  Object.values(parameterTemp).map(v => {
+                    if(typeof parameter[k] === 'undefined'){ parameter[k] = [] }
+                    parameter[k][v.substr(0,v.indexOf("#"))] = v.substr(v.indexOf("#")+1)
+                  })
+                }
+              }
+              if(config[k].className.length>0){
+                if(config[k].className.indexOf('#')==-1){
+                  className[k][0] = config[k].className  
+                }else{
+                  var classNameTemp = config[k].className.split(',')  
+                  Object.values(classNameTemp).map(v => {
+                    if(typeof className[k] === 'undefined'){ className[k] = [] }
+                    className[k][v.substr(0,v.indexOf("#"))] = v.substr(v.indexOf("#")+1)
+                  })
+                }
+              }
+              type[k] = config[k].type
+              align[k] = config[k].align
+              display[k] = config[k].display
+              searchable[k] = config[k].searchable
+              order.push(zeroLeft(config[k].order,5) + "#" + k)
+            }
+            if(display[k]=='true' || this.state.edit==true){
+              countColumns = countColumns + 1
             }
           }
-          if(config[k].className.length>0){
-            if(config[k].className.indexOf('#')==-1){
-              className[k][0] = config[k].className  
-            }else{
-              var classNameTemp = config[k].className.split(',')  
-              Object.values(classNameTemp).map(v => {
-                if(typeof className[k] === 'undefined'){ className[k] = [] }
-                className[k][v.substr(0,v.indexOf("#"))] = v.substr(v.indexOf("#")+1)
-              })
-            }
-          }
-          type[k] = config[k].type
-          align[k] = config[k].align
-          display[k] = config[k].display
-          searchable[k] = config[k].searchable
-          order.push(zeroLeft(config[k].order,5) + "#" + k)
-        }
-        if(display[k]=='true' || this.state.edit==true){
-          countColumns = countColumns + 1
-        }
+        })
       })
 
       var maskOrder = []

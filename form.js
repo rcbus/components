@@ -1,21 +1,15 @@
-/*
-Definições das propriedades (props):
+/* ########## Definições das propriedades (props): ##########
 
-api - Nome da API que será responsável pelo CRUDAB
-
-callbackChange - A função que será executada toda vez que o formulário for alterado.
-
-callbackClick - A função que será executada toda vez que houver um click em um botão do formulário.
-
-callbackReset - A função que será executada para resetar o formulário.
-
-callbackUpdate - A função que será executada para atualizar as informações do formulário.
-
-callbackDab - A função que será executada quando finalizar o DAB.
-
-collection - A coleção ou tabela do banco de dados
-
-content - É um array de objetos que contém as definições de cada componente do form. 
+api: Nome da API que será responsável pelo CRUDAB
+callbackChange: (Não funciona se callbackSetForm estiver setado) A função que será executada 
+                toda vez que o formulário for alterado.
+callbackClick: A função que será executada toda vez que houver um click em um botão do formulário.
+callbackReset: A função que será executada para resetar o formulário.
+callbackSetForm: A função que alterado o estado do form no componente pai.
+callbackUpdate: A função que será executada para atualizar as informações do formulário.
+callbackDab: A função que será executada quando finalizar o DAB.
+collection: A coleção ou tabela do banco de dados
+content:  É um array de objetos que contém as definições de cada componente do form. 
           Exemplo:
 
           [
@@ -33,20 +27,28 @@ content - É um array de objetos que contém as definições de cada componente 
               name:'save',
               innerHTML:'Salvar',
               where:[{'status':'1'}]
+            },
+            {
+              cols:setCols(12,12,12,12,4),
+              label:'Tipo Produto',
+              type:'select',
+              name:'productType',
+              optionNull:true,
+              data:[
+                {value:1,text:'Teste 1'},
+                {value:2,text:'Teste 2'}
+              ]
             }
           ]
+data: Dados do formulário
+margin: É uma classe adicional adicionada na div base do component, essa classe pode 
+        ser específica definida em um css ou usando as definições do bootstrap como 
+        por exemplo: 
 
-data - Dados do formulário
+        mt-2
 
-margin -  É uma classe adicional adicionada na div base do component, essa classe pode 
-          ser específica definida em um css ou usando as definições do bootstrap como 
-          por exemplo: 
-
-          mt-2
-
-          (obs: essa insere uma margem do tipo 2 no topo do objeto)
-
-msg - É um objeto e os atributos/propriedades desse objeto são as iniciais do CRUDAB 
+        (obs: essa insere uma margem do tipo 2 no topo do objeto)
+msg:  É um objeto e os atributos/propriedades desse objeto são as iniciais do CRUDAB 
       e será a mensagem exibida para cada uma das situações como no exemplo abaixo:
 
       {
@@ -56,17 +58,17 @@ msg - É um objeto e os atributos/propriedades desse objeto são as iniciais do 
         a:{confirm:'Deseja ativar?',success:'Ativado com sucesso!'},
         b:{confirm:'Deseja deseja bloquear?',success:'Bloqueado com sucesso!'}
       }
-
-next -  É um objeto contendo o próximo id da lista e uma função para seta-lo:
+next: É um objeto contendo o próximo id da lista e uma função para seta-lo:
         
-        {{id:next,set:clickCell}}
-
-prev -  É um objeto contendo o id anterior da lista e uma função para seta-lo:
+      {{id:next,set:clickCell}}
+notAdjustDecimal: Quando definido não ajusta as casas decimais dos números.
+prev: É um objeto contendo o id anterior da lista e uma função para seta-lo:
       
-        {{id:prev,set:clickCell}}
+      {{id:prev,set:clickCell}}
+resetEvery: Quanto true reseta o formulário toda vez que o mesmo é alterado.
+withoutMargin: Quando true tira a margem que tem no topo do formulário
 
-resetEvery - Quanto true reseta o formulário toda vez que o mesmo é alterado.
-*/
+########## Definições das propriedades (props): ########## */
 
 import { setCols,setSubState, getSession, sign,decimal, zeroLeft } from '../libs/functions'
 import { api } from '../libs/api'
@@ -76,13 +78,41 @@ import { openMsg } from './msg';
 export default class extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      firstRender:true
-    }
     this.focus = React.createRef();
   }
 
-  onClick = (e,callback) => {
+  change = (e) => {
+    if(typeof this.props.callbackSetForm !== 'undefined'){
+      this.props.callbackSetForm({...this.props.data,[e.target.name]:e.target.value})
+    }else if(typeof this.props.callbackChange !== 'undefined'){
+      this.props.callbackChange(e)
+    }
+  }
+
+  changeSelect = (e) => {
+    if(typeof this.props.callbackSetForm !== 'undefined'){
+      var id = e.target.name + '_text'
+      var text = '';
+      Object.values(this.props.content).map(c => {
+        if(c.type=='select'){
+          if(c.name==e.target.name){
+            if(typeof c.data !== 'undefined'){
+              Object.values(c.data).map(v => {
+                if(v.value==e.target.value){
+                  text = v.text
+                }
+              })
+            }
+          }
+        }
+      })
+      this.props.callbackSetForm({...this.props.data,[e.target.name]:e.target.value,[id]:text})
+    }else if(typeof this.props.callbackChange !== 'undefined'){
+      this.props.callbackChange(e)
+    }
+  }
+
+  click = (e,callback) => {
     var form = this.props.data
     if(e.target.name=="register"){
       if(this.focus.current != null){ 
@@ -131,11 +161,27 @@ export default class extends React.Component {
     }
   }
 
-  save = (form) => {
+  save = (form,forced) => {
+    if(typeof forced !== 'undefined'){
+      form.forced = true
+    }
+    if(typeof this.props.notAdjustDecimal === 'undefined'){
+      Object.values(this.props.content).map(c => {
+        if(c.type=='number'){
+          if(typeof c.precision !== 'undefined'){
+            form[c.name] = parseFloat(form[c.name]).toFixed(c.precision)
+          }
+        }
+      })
+    }
     openLoading({count:[1,5,60]})
     api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/api/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
-        openMsg({text:res.error,type:-1})
+        if(typeof res.forced === 'undefined'){
+          openMsg({text:res.error,type:-1})
+        }else{
+          openMsg({text:res.error,type:-1,textYes:'Sim',textNo:'Não',callbackYes:() => this.save(form,true)})
+        }
       }else{
         if(form._id.length==0){
           openMsg({text:(this.verifyMsgSuccess('c') ? this.verifyMsgSuccess('c') : 'Dados cadastrados com sucesso!'),type:1})
@@ -238,16 +284,7 @@ export default class extends React.Component {
 
   getData = (k,t,p) => {
     if(typeof this.props.data[k] !== 'undefined'){
-      if(t=='number'){
-        if(this.state.firstRender===true){
-          this.setState({firstRender:false})
-          return parseFloat(this.props.data[k]).toFixed(p)
-        }else{
-          return this.props.data[k]  
-        }
-      }else{
-        return this.props.data[k]
-      }
+      return this.props.data[k]
     }else{
       return ''
     }
@@ -262,12 +299,10 @@ export default class extends React.Component {
   }
 
   prev = (e) => {
-    this.setState({firstRender:true})
     this.props.prev.set(e)
   }
 
   next = (e) => {
-    this.setState({firstRender:true})
     this.props.next.set(e)
   }
 
@@ -282,11 +317,11 @@ export default class extends React.Component {
           <div>Informe o content</div>
         ):!this.props.data ? (
           <div>Informe o data</div>
-        ):!this.props.callbackChange ? (
-          <div>Informe o callbackChange</div>
+        ):!this.props.callbackSetForm && !this.props.callbackChange ? (
+          <div>Informe o callbackSetForm ou callbackChange</div>
         ):(
           <div>
-            <div className="form-base form-row">
+            <div className={!this.props.withoutMargin ? "form-base form-row" : "form-base withoutMargin form-row"}>
               {Object.values(this.props.content).map(c => (
                 (c.where ? this.verifyWhere(c.where) : true) ? (  
                   <div key={c.name} className={c.cols + " " + this.props.margin}>
@@ -311,19 +346,28 @@ export default class extends React.Component {
 
                     ):c.type=='text' ? (
                     
-                      <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.props.callbackChange} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false}/>
+                      <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
                     
                     ):c.type=='number' ? (
                     
-                      <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.props.callbackChange} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false}/>
+                      <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
                     
                     ):c.type=='textarea' ? (
                     
-                      <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.props.callbackChange} value={this.getData(c.name,c.type,c.precision)}></textarea>
+                      <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} readOnly={c.readOnly ? true : false}></textarea>
                     
+                    ):c.type=='select' ? (
+
+                      <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision)}>
+                        {typeof c.optionNull !== 'undefined' ? <option value=""></option> : null }
+                        {typeof c.data !== 'undefined' ? Object.values(c.data).map(v => (
+                          <option key={v.value} value={v.value}>{v.text}</option>
+                        )) : null}
+                      </select>
+
                     ):c.type=='button' ? (
                       
-                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.onClick(e,c.callback)}>{c.innerHTML}</button>
+                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
                     
                     ):null}
                   </div>
@@ -332,11 +376,11 @@ export default class extends React.Component {
             </div>
           
             {this.props.button ? (
-              <div className="form-row">
+              <div className={!this.props.withoutMargin ? "form-row" : "form-row withoutMargin"}>
                 {Object.values(this.props.button).map(c => (
                   (c.where ? this.verifyWhere(c.where) : true) ? (  
                     <div key={c.name} className={c.cols + " " + this.props.margin}>
-                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.onClick(e,c.callback)}>{c.innerHTML}</button>
+                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
                     </div>
                   ):null
                 ))}
