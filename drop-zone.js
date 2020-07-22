@@ -293,22 +293,22 @@ export default class extends React.Component {
 				<style jsx>{`
 					.baseAreaUpload{
 						width: 100%;
-						height: 100%;
 						min-height:${(this.props.minHeight ? this.props.minHeight : '200px')};
 						align-items: center;
 						justify-content: center;
-						display:flex;
+						display:block;
 						z-index:500;
+						position: relative;
 					}
 					.area-upload{
 						margin: 0px;
 						padding: 20px;
 						box-sizing: border-box;	
 						width: 100%;
-						height: 100%;
-						position: relative;
+						display: block;
+						min-height:${(this.props.minHeight ? this.props.minHeight : '200px')};
 						background-color: white;
-						min-height:${this.props.minHeight};
+						position: relative;
 					}
 
 					.area-upload label.label-upload{
