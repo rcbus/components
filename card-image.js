@@ -108,6 +108,7 @@ export default class extends React.Component {
 			showCount: false,
 			_id:'',
 			_idA:'',
+			storage:'',
 			update:false,
 			confirmDelete: 0,
 			_idRef:false
@@ -148,7 +149,7 @@ export default class extends React.Component {
 			data.append('params',JSON.stringify({
 				_id: this.state._id,
 				action:'delete',
-				storage:this.props.storage,
+				storage:this.state.storage,
 				path:this.props.path,
 				bucket:this.props.bucket
 			}));
@@ -170,20 +171,22 @@ export default class extends React.Component {
 	
 			request.responseType = 'json';
 				
-			request.open('post', this.props.api); 
+			request.open('post', process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api); 
 			request.send(data);
 		}
 	}
 
 	loadImage(){
-		if(this.props.storage=="HD" || this.props.storage=="S3"){
+		if(this.state.storage=="HD" || this.state.storage=="S3"){
 			return this.state.path
-		}else if(this.props.storage=="DB"){
+		}else if(this.state.storage=="DB"){
 			if(strlen(this.state.data)>0 && strlen(this.state.type)>0){
 				return 'data:' + this.state.type + ';base64,' + this.state.data
 			}else{
 				return '../noPhoto.png'
 			}
+		}else{
+			return '../noPhoto.png'
 		}
 	}
 
@@ -207,6 +210,7 @@ export default class extends React.Component {
 		if(_id!==false){
 			var pathTemp = this.state.path
 			var dataTemp = this.state.data
+			var storageTemp = this.state.storage
 			var typeTemp = this.state.type
 			var _idTemp = false
 			var prev = false
@@ -218,12 +222,13 @@ export default class extends React.Component {
 				if(d._id==_id){
 					_idTemp = d._id
 					current = count
-					if(this.props.storage=='S3'){
+					if(d.storage=='S3'){
 						pathTemp = 'https://s3.amazonaws.com/' + d.path + '/' + d.name
 					}else{
 						pathTemp = d.path + '/' + d.name
 					}
 					dataTemp = d.data
+					storageTemp = d.storage
 					typeTemp = d.type
 				}else if(_idTemp===false){
 					prev = d._id
@@ -234,6 +239,7 @@ export default class extends React.Component {
 			this.setState({
 				path:pathTemp,
 				data:dataTemp,
+				storage:storageTemp,
 				type:typeTemp,
 				prev,
 				next,
@@ -273,10 +279,12 @@ export default class extends React.Component {
 				}else{
 					var pathTemp = this.state.path
 					var dataTemp = this.state.data
+					var storageTemp = this.state.storage
 					var typeTemp = this.state.type
 					if(_id===false){
 						pathTemp = '../noPhoto.png'
 						dataTemp = ''
+						storageTemp = ''
 						typeTemp = ''
 					}
 					var _idTemp = false
@@ -289,12 +297,13 @@ export default class extends React.Component {
 						if(d._id==_id || (_id===false && _idTemp===false)){
 							_idTemp = d._id
 							current = count
-							if(this.props.storage=='S3'){
+							if(d.storage=='S3'){
 								pathTemp = 'https://s3.amazonaws.com/' + d.path + '/' + d.name
 							}else{
 								pathTemp = d.path + '/' + d.name
 							}
 							dataTemp = d.data
+							storageTemp = d.storage
 							typeTemp = d.type
 						}else if(_idTemp===false){
 							prev = d._id
@@ -307,6 +316,7 @@ export default class extends React.Component {
 						list:res.data,
 						path:pathTemp,
 						data:dataTemp,
+						storage:storageTemp,
 						type:typeTemp,
 						prev,
 						next,

@@ -1,6 +1,7 @@
 /* ########## Definições das propriedades (props): ##########
 
 callbackClickCell: Função de retorno do click em uma célula
+callbackRegister: Função de retorno do click do botão cadastrar
 collection: A coleção ou tabela do banco de dados
 config: Objeto contendo informações de configuração dessa tabela vindo de um banco de dados
 data: Dados da tabela. Um objeto contendo pelo menos o campo _id
@@ -30,9 +31,44 @@ export default class extends React.Component {
     super(props);
     this.state = {
       formConfig:this.getStdFormConfigState(),
-      config:[],
-      edit:false
+      config:false,
+      edit:false,
+      seeAll:false,
+      list:false,
+      search:''
     };
+  }
+
+  componentDidMount(){
+    if(this.props.api){
+      this.setState({
+        list:[],
+        config:[]
+      })
+      this.getListData();
+    }
+  }
+
+  getListData(condition) {
+    var data = {}
+    data.condition = {}
+    data.config = this.state.config
+    data.search = this.state.search
+    if(typeof condition === 'undefined'){
+      if(this.state.seeAll===false){ data.condition = {status:1} }
+    }else{
+      data.condition = condition
+    }
+    api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,data,(res) => {
+      if(res.res=="error"){
+        openMsg({text:res.error,type:-1})
+      }else{
+        this.setState({
+          list:res.data.data,
+          config:res.data.config
+        })
+      }
+    })
   }
 
   getStdFormConfigState(){
@@ -64,12 +100,14 @@ export default class extends React.Component {
   onClick = (e) => {
     if(typeof e.target === 'undefined'){
       var config = []
-      if(this.state.config.length==0){
+
+      if(this.state.config!==false){
+        config = this.state.config
+      }else if(this.props.config){
         this.setState({config:this.props.config})
         config = this.props.config
-      }else{
-        config = this.state.config
       }
+
       var configKey = false
       Object.keys(config).map(k => {
         if(config[k].mask==e){
@@ -126,119 +164,57 @@ export default class extends React.Component {
     }
   }
 
+  preRender = (warning,edit) => {
+    return (
+      <div className={this.props.margin}>
+        <div className="form-row">
+          <div className={setCols(12,12,12,12,12)}>
+            <table className="table table-bordered">
+              <thead>
+                <tr className="dtaTop">
+                  <th scope="col">
+                    <div className="form-row mb-0">
+                      <div align="left" className={setCols(6,6,6,6,6)}>
+                        {warning}
+                      </div>
+                      {edit ? (
+                        <div align="right" className={setCols(6,6,6,6,6)}>
+                          <button type="button" name="edit" className={this.state.edit==false ? "btn btn-sm btn-secundary" : "btn btn-sm btn-warning"} onClick={this.onClick}>{this.state.edit==false ? "Editar" : "Fechar Edição"}</button>
+                        </div>
+                      ):null}
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   render(){
     cont = -1
     if(typeof this.props.collection === 'undefined'){
-      return (
-        <div>
-          <div className={"form-row " + this.props.margin}>
-            <div className={setCols(12,12,12,12,12)}>
-              <table className="table table-bordered">
-                <thead>
-                  <tr className="dtaTop">
-                    <th scope="col">
-                      <div align="center">
-                        Informe a collection
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-          </div>
-        </div>
-      )
-    }else if(typeof this.props.data === 'undefined'){
-        return (
-          <div className={this.props.margin}>
-            <div className="form-row">
-              <div className={setCols(12,12,12,12,12)}>
-                <table className="table table-bordered">
-                  <thead>
-                    <tr className="dtaTop">
-                      <th scope="col">
-                        <div align="center">
-                          Informe o data
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-            </div>
-          </div>
-        )
-    }else if(typeof this.props.config === 'undefined'){
-        return (
-          <div className={this.props.margin}>
-            <div className="form-row">
-              <div className={setCols(12,12,12,12,12)}>
-                <table className="table table-bordered">
-                  <thead>
-                    <tr className="dtaTop">
-                      <th scope="col">
-                        <div align="center">
-                          Informe o config
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-            </div>
-          </div>
-        )
-    }else if(this.props.data==null){
-      return (
-        <div className={this.props.margin}>
-          <div className="form-row">
-            <div className={setCols(12,12,12,12,12)}>
-              <table className="table table-bordered">
-                <thead>
-                  <tr className="dtaTop">
-                    <th scope="col">
-                      <div className="form-row mb-0">
-                        <div align="left" className={setCols(6,6,6,6,6)}>
-                          Carregando...
-                        </div>
-                        <div align="right" className={setCols(6,6,6,6,6)}>
-                          <button type="button" name="edit" className={this.state.edit==false ? "btn btn-sm btn-secundary" : "btn btn-sm btn-warning"} onClick={this.onClick}>{this.state.edit==false ? "Editar" : "Fechar Edição"}</button>
-                        </div>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-          </div>
-        </div>
-      )
-    }else if(this.props.data.length==0){
-      return (
-        <div className={this.props.margin}>
-          <div className="form-row">
-            <div className={setCols(12,12,12,12,12)}>
-              <table className="table table-bordered">
-                <thead>
-                  <tr className="dtaTop">
-                    <th scope="col">
-                      <div className="form-row mb-0">
-                        <div align="left" className={setCols(6,6,6,6,6)}>
-                          {this.props.title} (0)
-                        </div>
-                        <div align="right" className={setCols(6,6,6,6,6)}>
-                          <button type="button" name="edit" className={this.state.edit==false ? "btn btn-sm btn-secundary" : "btn btn-sm btn-warning"} onClick={this.onClick}>{this.state.edit==false ? "Editar" : "Fechar Edição"}</button>
-                        </div>
-                      </div>
-                    </th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-          </div>
-        </div>
-      )
+      return this.preRender("Informe a collection")
+    }else if(typeof this.props.data === 'undefined' && this.state.list===false){
+      return this.preRender("Informe o data")
+    }else if(typeof this.props.config === 'undefined' && this.state.config===false){
+      return this.preRender("Informe o config")
+    }else if(this.props.data==null && this.state.list===false){
+      return this.preRender("Carregando...")
     }else{
+      if(this.props.data!=null){
+        if(this.props.data.length==0){
+          return this.preRender((this.props.title ? this.props.title + ' ' : '') + '(0)',true) 
+        }
+      }
+      if(this.state.list!==false){
+        if(this.state.list.length==0){
+          return this.preRender((this.props.title ? this.props.title + ' ' : '') + '(0)',true)
+        }
+      }
+      
       var configTemp = []
       var config = []
       var mask = []
@@ -248,14 +224,15 @@ export default class extends React.Component {
       var align = []
       var display = []
       var searchable = []
-      var countColumns = 0;
+      var countColumns = 0
+      var data = []
 
       order = []
 
-      if(this.state.config.length==0){
-        configTemp = this.props.config
-      }else{
+      if(this.state.config!==false){
         configTemp = this.state.config
+      }else if(this.props.config){
+        configTemp = this.props.config
       }
 
       Object.keys(configTemp).map(k => {
@@ -272,7 +249,13 @@ export default class extends React.Component {
         }
       })
 
-      Object.values(this.props.data).map(v => {
+      if(this.state.list!==false){
+        data = this.state.list
+      }else if(this.props.data){
+        data = this.props.data
+      }
+
+      Object.values(data).map(v => {
         Object.keys(v).map(k => {
           if(typeof mask[k] === 'undefined'){
             mask[k] = k
@@ -352,148 +335,163 @@ export default class extends React.Component {
       }
 
       return (
-        <div className={this.props.margin}>
-          {this.state.edit==true ? (
-            <div className="form-row" id="baseConfig" name="baseConfig">
-              <div className={setCols(12,12,4,3,2)}>
-                <label>Column</label>
-                <input type="text" className="form-control" name="column" value={this.state.formConfig.column} readOnly />
+        <>
+          {this.props.search ? (
+            <div className="form-row">
+              <div className={setCols(12,12,6,8,8) + " mb-2 mb-md-0 "}>
+                <input type="text" className="form-control" value={this.state.search} onChange={(e) => this.setState({search: e.target.value})} onKeyDown={(e) => (e.key=="Enter" ? this.getListData() : null)} placeholder="Pesquise Aqui"/>
               </div>
-              <div className={setCols(12,8,4,3,3)}>
-                <label>Mask</label>
-                <input type="text" className="form-control" name="mask" value={this.state.formConfig.mask} onChange={this.onChangeFormConfig}/>
+              <div className={setCols(12,6,3,2,2,1)}>
+                <button type="button" className={"btn " + (!this.state.seeAll ? "btn-secondary" : "btn-warning") + " btn-block"} onClick={() => this.setState({seeAll:!this.state.seeAll},this.getListData)}>{!this.state.seeAll ? "Ver Todos" : "Não Ver Todos"}</button>
               </div>
-              <div className={setCols(12,4,4,2,2)}>
-                <label>Type</label>
-                <select className="form-control" name="type" value={this.state.formConfig.type} onChange={this.onChangeFormConfig}>
-                  <option>text</option>
-                  <option>date</option>
-                  <option>number</option>
-                </select>
-              </div>
-              <div className={setCols(6,3,3,2,1)}>
-                <label>Align</label>
-                <select className="form-control" name="align" value={this.state.formConfig.align} onChange={this.onChangeFormConfig}>
-                  <option>left</option>
-                  <option>center</option>
-                  <option>right</option>
-                </select>
-              </div>
-              <div className={setCols(6,3,3,2,1)}>
-                <label>Display</label>
-                <select className="form-control" name="display" value={this.state.formConfig.display} onChange={this.onChangeFormConfig}>
-                  <option>true</option>
-                  <option>false</option>
-                </select>
-              </div>
-              <div className={setCols(6,4,3,2,2)}>
-                <label>Searchable</label>
-                <select className="form-control" name="searchable" value={this.state.formConfig.searchable} onChange={this.onChangeFormConfig}>
-                  <option>true</option>
-                  <option>false</option>
-                </select>
-              </div>
-              <div className={setCols(6,2,3,2,1)}>
-                <label>Order</label>
-                <input type="text" className="form-control" name="order" value={this.state.formConfig.order===false ? (order.length + 1) : this.state.formConfig.order} onChange={this.onChangeFormConfig}/>
-              </div>
-              <div className={setCols(12,12,6,4,4)}>
-                <label>Parameter</label>
-                <input type="text" className="form-control" name="parameter" value={this.state.formConfig.parameter} onChange={this.onChangeFormConfig}/>
-              </div>
-              <div className={setCols(12,12,6,4,4)}>
-                <label>Class</label>
-                <input type="text" className="form-control" name="className" value={this.state.formConfig.className} onChange={this.onChangeFormConfig}/>
-              </div>
-              <div className={setCols(6,6,3,2,2)}>
-                <label></label>
-                <button type="button" name="save" className="btn btn-success btn-block" onClick={this.onClick}>Salvar</button>
-              </div>
-              <div className={setCols(6,6,3,2,2)}>
-                <label></label>
-                <button type="button" name="cancel" className="btn btn-warning btn-block" onClick={this.onClick}>Cancelar</button>
+              <div className={setCols(12,6,3,2,2,1)}>
+                <button type="button" className="btn btn-primary btn-block" onClick={() => (this.props.callbackRegister ? this.props.callbackRegister() : null)}>+ Cadastrar</button>
               </div>
             </div>
           ):null}
-          <div className="form-row">
-            <div className={setCols(12,12,12,12,12) + " divScrollX"}>
-              <table className="table table-bordered">
-                
-                {(!this.props.withoutTitle || this.props.editable) ? (
-                  <thead>
-                    <tr className="dtaTop">
-                      <th scope="col" colSpan={countColumns}>
-                        <div className="form-row mb-0">
-                          <div align="left" className={setCols(6,6,6,6,6)}>
-                            {this.props.title} ({this.props.data.length})
-                          </div>
-                          {this.props.editable==true ? (
-                            <div align="right" className={setCols(6,6,6,6,6)}>
-                              <button type="button" name="edit" className={this.state.edit==false ? "btn btn-sm btn-secundary" : "btn btn-sm btn-warning"} onClick={this.onClick}>{this.state.edit==false ? "Editar" : "Fechar Edição"}</button>
+          <div className={this.props.margin}>
+            {this.state.edit==true ? (
+              <div className="form-row" id="baseConfig" name="baseConfig">
+                <div className={setCols(12,12,4,3,2)}>
+                  <label>Column</label>
+                  <input type="text" className="form-control" name="column" value={this.state.formConfig.column} readOnly />
+                </div>
+                <div className={setCols(12,8,4,3,3)}>
+                  <label>Mask</label>
+                  <input type="text" className="form-control" name="mask" value={this.state.formConfig.mask} onChange={this.onChangeFormConfig}/>
+                </div>
+                <div className={setCols(12,4,4,2,2)}>
+                  <label>Type</label>
+                  <select className="form-control" name="type" value={this.state.formConfig.type} onChange={this.onChangeFormConfig}>
+                    <option>text</option>
+                    <option>date</option>
+                    <option>number</option>
+                  </select>
+                </div>
+                <div className={setCols(6,3,3,2,1)}>
+                  <label>Align</label>
+                  <select className="form-control" name="align" value={this.state.formConfig.align} onChange={this.onChangeFormConfig}>
+                    <option>left</option>
+                    <option>center</option>
+                    <option>right</option>
+                  </select>
+                </div>
+                <div className={setCols(6,3,3,2,1)}>
+                  <label>Display</label>
+                  <select className="form-control" name="display" value={this.state.formConfig.display} onChange={this.onChangeFormConfig}>
+                    <option>true</option>
+                    <option>false</option>
+                  </select>
+                </div>
+                <div className={setCols(6,4,3,2,2)}>
+                  <label>Searchable</label>
+                  <select className="form-control" name="searchable" value={this.state.formConfig.searchable} onChange={this.onChangeFormConfig}>
+                    <option>true</option>
+                    <option>false</option>
+                  </select>
+                </div>
+                <div className={setCols(6,2,3,2,1)}>
+                  <label>Order</label>
+                  <input type="text" className="form-control" name="order" value={this.state.formConfig.order===false ? (order.length + 1) : this.state.formConfig.order} onChange={this.onChangeFormConfig}/>
+                </div>
+                <div className={setCols(12,12,6,4,4)}>
+                  <label>Parameter</label>
+                  <input type="text" className="form-control" name="parameter" value={this.state.formConfig.parameter} onChange={this.onChangeFormConfig}/>
+                </div>
+                <div className={setCols(12,12,6,4,4)}>
+                  <label>Class</label>
+                  <input type="text" className="form-control" name="className" value={this.state.formConfig.className} onChange={this.onChangeFormConfig}/>
+                </div>
+                <div className={setCols(6,6,3,2,2)}>
+                  <label></label>
+                  <button type="button" name="save" className="btn btn-success btn-block" onClick={this.onClick}>Salvar</button>
+                </div>
+                <div className={setCols(6,6,3,2,2)}>
+                  <label></label>
+                  <button type="button" name="cancel" className="btn btn-warning btn-block" onClick={this.onClick}>Cancelar</button>
+                </div>
+              </div>
+            ):null}
+            <div className="form-row">
+              <div className={setCols(12,12,12,12,12) + " divScrollX"}>
+                <table className="table table-bordered">
+                  
+                  {(!this.props.withoutTitle || this.props.editable) ? (
+                    <thead>
+                      <tr className="dtaTop">
+                        <th scope="col" colSpan={countColumns}>
+                          <div className="form-row mb-0">
+                            <div align="left" className={setCols(6,6,6,6,6)}>
+                              {this.props.title} ({data.length})
                             </div>
-                          ):null}
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                ):null}
-
-                <thead>
-                  <tr className="dtaTop">
-                    {Object.keys(maskOrder).map(k => (
-                      (display[k]=="true" || this.state.edit==true) ? (
-                        <th key={k} scope="col" className={display[k]=="true" ? "" : "stdRed"} onClick={() => this.onClick(maskOrder[k])}>
-                          <div align={align[k]}>
-                            {maskOrder[k]}
+                            {this.props.editable==true ? (
+                              <div align="right" className={setCols(6,6,6,6,6)}>
+                                <button type="button" name="edit" className={this.state.edit==false ? "btn btn-sm btn-secundary" : "btn btn-sm btn-warning"} onClick={this.onClick}>{this.state.edit==false ? "Editar" : "Fechar Edição"}</button>
+                              </div>
+                            ):null}
                           </div>
                         </th>
-                      ):null
-                    ))}
-                  </tr>
-                </thead>
-                {this.props.data.map(data => (
-                  <tbody key={data._id}>
-                    <tr className={this.getRowClass()}>
+                      </tr>
+                    </thead>
+                  ):null}
+
+                  <thead>
+                    <tr className="dtaTop">
                       {Object.keys(maskOrder).map(k => (
                         (display[k]=="true" || this.state.edit==true) ? (
-                          (k == 'id' || k=='_id') ? (
-                            <th key={k} scope="row" name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                              <div align={align[k]}>
-                                {data[k]}
-                              </div>
-                            </th>
-                          ):(
-                            (type[k]=='text' && parameter[k].length>0) ? (
-                              <td key={k} className={typeof className[k] !== 'undefined' ? typeof className[k][data[k]] !== 'undefined' ? className[k][data[k]] : typeof className[k][0] !== 'undefined' ? className[k][0] : null : null} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                <div align={align[k]}>
-                                  {typeof parameter[k] !== 'undefined' ? typeof parameter[k][data[k]] !== 'undefined' ? parameter[k][data[k]] : typeof parameter[k][0] !== 'undefined' ? parameter[k][0] : null : null}
-                                </div>
-                              </td>
-                            ):(
-                              (type[k]=='date') ? ( 
-                                <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                  <div align={align[k]}>
-                                    {this.formatData(data[k])}
-                                  </div>
-                                </td>
-                              ):(
-                                <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                  <div align={align[k]}>
-                                    {data[k]}
-                                  </div>
-                                </td>
-                              )
-                            )
-                          )
+                          <th key={k} scope="col" className={display[k]=="true" ? "" : "stdRed"} onClick={() => this.onClick(maskOrder[k])}>
+                            <div align={align[k]}>
+                              {maskOrder[k]}
+                            </div>
+                          </th>
                         ):null
                       ))}
                     </tr>
-                  </tbody>
-                ))}
-              </table>
+                  </thead>
+                  {data.map(data => (
+                    <tbody key={data._id}>
+                      <tr className={this.getRowClass()}>
+                        {Object.keys(maskOrder).map(k => (
+                          (display[k]=="true" || this.state.edit==true) ? (
+                            (k == 'id' || k=='_id') ? (
+                              <th key={k} scope="row" name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
+                                <div align={align[k]}>
+                                  {data[k]}
+                                </div>
+                              </th>
+                            ):(
+                              (type[k]=='text' && parameter[k].length>0) ? (
+                                <td key={k} className={typeof className[k] !== 'undefined' ? typeof className[k][data[k]] !== 'undefined' ? className[k][data[k]] : typeof className[k][0] !== 'undefined' ? className[k][0] : null : null} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
+                                  <div align={align[k]}>
+                                    {typeof parameter[k] !== 'undefined' ? typeof parameter[k][data[k]] !== 'undefined' ? parameter[k][data[k]] : typeof parameter[k][0] !== 'undefined' ? parameter[k][0] : null : null}
+                                  </div>
+                                </td>
+                              ):(
+                                (type[k]=='date') ? ( 
+                                  <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
+                                    <div align={align[k]}>
+                                      {this.formatData(data[k])}
+                                    </div>
+                                  </td>
+                                ):(
+                                  <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
+                                    <div align={align[k]}>
+                                      {data[k]}
+                                    </div>
+                                  </td>
+                                )
+                              )
+                            )
+                          ):null
+                        ))}
+                      </tr>
+                    </tbody>
+                  ))}
+                </table>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )
     }
   }
