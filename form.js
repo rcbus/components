@@ -175,7 +175,7 @@ export default class extends React.Component {
       })
     }
     openLoading({count:[1,5,60]})
-    api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/api/' + this.props.api,process.env.tokenApi,form,(res) => {
+    api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
         if(typeof res.forced === 'undefined'){
           openMsg({text:res.error,type:-1})
@@ -215,7 +215,7 @@ export default class extends React.Component {
       form.status = 2
     } 
     openLoading({count:[1,5,60]})
-    api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/api/' + this.props.api,process.env.tokenApi,form,(res) => {
+    api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
         openMsg({text:res.error,type:-1})
       }else{
@@ -233,6 +233,8 @@ export default class extends React.Component {
           if(this.props.callbackReset){
             this.props.callbackReset()
           }
+        }else if(this.props.callbackUpdate){
+          this.props.callbackUpdate(res.data[0])
         }
       }  
       closeLoading()
@@ -333,15 +335,15 @@ export default class extends React.Component {
                     {c.type=='_id' ? (
                       
                       <div className="btn-group special">
-                        <button type="button" name="prev" className="btn btn-secondary" disabled={this.props.prev.id===false ? true : false} onClick={() => this.prev(this.props.prev.id)}>{"<"}</button>
+                        <button type="button" name="prev" className="btn btn-secondary" disabled={this.props.prev ? (this.props.prev.id===false ? true : false) : false} onClick={() => (this.props.prev ? this.prev(this.props.prev.id) : null)}>{"<"}</button>
                         <button type="button" name={c.name} className="middle btn btn-outline-dark" disabled>{this.getData(c.name,c.type,c.precision)}</button>
-                        <button type="button" name="next" className="btn btn-secondary" disabled={this.props.next.id===false ? true : false} onClick={() => this.next(this.props.next.id)}>{">"}</button>
+                        <button type="button" name="next" className="btn btn-secondary" disabled={this.props.next ? (this.props.next.id===false ? true : false) : false} onClick={() => (this.props.next ? this.next(this.props.next.id) : null)}>{">"}</button>
                       </div>
 
                     ):c.type=='status' ? (
 
                       <div>
-                        <div className={"std text-center " + c.className[this.getData(c.name,c.type,c.precision)]}>{c.mask[this.getData(c.name,c.type,c.precision)]}</div>
+                        <div className={"std form-control text-center " + c.className[this.getData(c.name,c.type,c.precision)]}>{c.mask[this.getData(c.name,c.type,c.precision)]}</div>
                       </div>
 
                     ):c.type=='text' ? (
