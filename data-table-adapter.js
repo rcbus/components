@@ -2,6 +2,7 @@
 
 callbackClickCell: Função de retorno do click em uma célula
 callbackRegister: Função de retorno do click do botão cadastrar
+callbackSeeAll: Função para conservar o estado do seeAll
 collection: A coleção ou tabela do banco de dados
 config: Objeto contendo informações de configuração dessa tabela vindo de um banco de dados
 data: Dados da tabela. Um objeto contendo pelo menos o campo _id
@@ -13,11 +14,12 @@ margin: É uma classe adicional adicionada na div base do component, essa classe
           mt-2 (obs: essa insere uma margem do tipo 2 no topo do objeto)
 
 order: Array com os nomes das colunas na ordem que devem aparecer
+seeAll: Serve para o componente pai definir o estado de seeAll conservado
 title: Título da tabela 
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState,zeroLeft } from '../libs/functions'
+import { setCols,setSubState,zeroLeft,strlen } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from '../components/loading'
 import { openMsg } from '../components/msg';
@@ -40,25 +42,34 @@ export default class extends React.Component {
   }
 
   componentDidMount(){
+    var state = {}
     if(this.props.api){
-      this.setState({
-        list:[],
-        config:[]
-      })
-      this.getListData();
+      state.list = []
+      state.config = []
     }
+    if(this.props.seeAll){
+      state.seeAll = this.props.seeAll
+    }
+    this.setState(state,this.getListData)
   }
 
   getListData(condition) {
     var data = {}
     data.condition = {}
     data.config = this.state.config
-    data.search = this.state.search
+    if(strlen(this.state.search)>0){
+      data.search = this.state.search
+    }
     if(typeof condition === 'undefined'){
       if(this.state.seeAll===false){ data.condition = {status:1} }
     }else{
       data.condition = condition
     }
+
+    if(this.props.callbackSeeAll){
+      this.props.callbackSeeAll(this.state.seeAll)
+    }
+
     api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,data,(res) => {
       if(res.res=="error"){
         openMsg({text:res.error,type:-1})
@@ -160,7 +171,7 @@ export default class extends React.Component {
 
   onClickCell = (e) => {
     if(typeof this.props.callbackClickCell !== 'undefined'){
-      this.props.callbackClickCell(e)
+      this.props.callbackClickCell(e,this.state.list)
     }
   }
 
@@ -198,7 +209,7 @@ export default class extends React.Component {
     if(typeof this.props.collection === 'undefined'){
       return this.preRender("Informe a collection")
     }else if(typeof this.props.data === 'undefined' && this.state.list===false){
-      return this.preRender("Informe o data")
+      return this.preRender("Informe o data ou a api")
     }else if(typeof this.props.config === 'undefined' && this.state.config===false){
       return this.preRender("Informe o config")
     }else if(this.props.data==null && this.state.list===false){
