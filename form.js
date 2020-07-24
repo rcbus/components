@@ -4,6 +4,9 @@ api: Nome da API que será responsável pelo CRUDAB
 callbackChange: (Não funciona se callbackSetForm estiver setado) A função que será executada 
                 toda vez que o formulário for alterado.
 callbackClick: A função que será executada toda vez que houver um click em um botão do formulário.
+callbackNext: A função será executada ao clicar no botão next.
+callbackPrev: A função será executada ao clicar no botão prev.
+callbackRegister: A função será executada ao clicar no botão register.
 callbackReset: A função que será executada para resetar o formulário.
 callbackSetForm: A função que alterado o estado do form no componente pai.
 callbackUpdate: A função que será executada para atualizar as informações do formulário.
@@ -61,16 +64,20 @@ msg:  É um objeto e os atributos/propriedades desse objeto são as iniciais do 
 next: É um objeto contendo o próximo id da lista e uma função para seta-lo:
         
       {{id:next,set:clickCell}}
+
+      OBS: Ou pode usar o next direto e usar a callbackNext.
 notAdjustDecimal: Quando definido não ajusta as casas decimais dos números.
 prev: É um objeto contendo o id anterior da lista e uma função para seta-lo:
       
       {{id:prev,set:clickCell}}
+
+      OBS: Ou pode usar o prev direto e usar a callbackPrev.
 resetEvery: Quanto true reseta o formulário toda vez que o mesmo é alterado.
 withoutMargin: Quando true tira a margem que tem no topo do formulário
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState, getSession, sign,decimal, zeroLeft } from '../libs/functions'
+import { setCols,setSubState, getSession, sign,decimal, zeroLeft,strlen } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from './loading'
 import { openMsg } from './msg';
@@ -117,6 +124,9 @@ export default class extends React.Component {
     if(e.target.name=="register"){
       if(this.focus.current != null){ 
         this.focus.current.focus() 
+      }
+      if(this.props.callbackRegister){
+        this.props.callbackRegister()
       }
     }else if(e.target.name=="cancel"){
       if(this.props.callbackReset){
@@ -300,12 +310,60 @@ export default class extends React.Component {
     }
   }
 
-  prev = (e) => {
-    this.props.prev.set(e)
+  prev = () => {
+    if(typeof this.props.prev.set !== 'undefined'){
+      if(typeof this.props.prev.id !== 'undefined'){
+        this.props.prev.set(this.props.prev.id)
+      }
+    }else if(this.props.callbackPrev){
+      if(this.props.prev){
+        this.props.callbackPrev(this.props.prev)
+      }
+    }
   }
 
-  next = (e) => {
-    this.props.next.set(e)
+  next = () => {
+    if(typeof this.props.next.set !== 'undefined'){
+      if(typeof this.props.next.id !== 'undefined'){
+        this.props.next.set(this.props.next.id)
+      }
+    }else if(this.props.callbackNext){
+      if(this.props.next){
+        this.props.callbackNext(this.props.next)
+      }
+    }
+  }
+
+  verifyPrev = () => {
+    if(typeof this.props.prev.id !== 'undefined'){
+      if(this.props.prev.id===false){
+        return true
+      }else{
+        return false
+      }
+    }else{
+      if(this.props.prev){
+        return false
+      }else{
+        return true
+      }
+    }
+  }
+
+  verifyNext = () => {
+    if(typeof this.props.next.id !== 'undefined'){
+      if(this.props.next.id===false){
+        return true
+      }else{
+        return false
+      }
+    }else{
+      if(this.props.next){
+        return false
+      }else{
+        return true
+      }
+    }
   }
 
   render(){
@@ -335,9 +393,9 @@ export default class extends React.Component {
                     {c.type=='_id' ? (
                       
                       <div className="btn-group special">
-                        <button type="button" name="prev" className="btn btn-secondary" disabled={this.props.prev ? (this.props.prev.id===false ? true : false) : false} onClick={() => (this.props.prev ? this.prev(this.props.prev.id) : null)}>{"<"}</button>
+                        <button type="button" name="prev" className="btn btn-secondary" disabled={this.verifyPrev()} onClick={() => this.prev()}>{"<"}</button>
                         <button type="button" name={c.name} className="middle btn btn-outline-dark" disabled>{this.getData(c.name,c.type,c.precision)}</button>
-                        <button type="button" name="next" className="btn btn-secondary" disabled={this.props.next ? (this.props.next.id===false ? true : false) : false} onClick={() => (this.props.next ? this.next(this.props.next.id) : null)}>{">"}</button>
+                        <button type="button" name="next" className="btn btn-secondary" disabled={this.verifyNext()} onClick={() => this.next()}>{">"}</button>
                       </div>
 
                     ):c.type=='status' ? (
@@ -393,4 +451,43 @@ export default class extends React.Component {
       </form>
     )
   }
+}
+
+export function formUpdate(form,list,callbackSetForm,callbackSetList){
+  Object.keys(list).map(k => {
+      if(list[k]._id==form._id){
+          list[k] = form
+      }
+  })
+  callbackSetForm(form)
+  callbackSetList(list)
+}
+
+export function formModify(id,list,callbackSetForm,callbackSetList,callbackSetNext,callbackSetPrev,slide,callbackSetSlide,title,callbackSetTitle){
+  if(strlen(list)>0){
+      callbackSetList(list)
+  }
+  var form = false
+  var next = false
+  var prev = false
+  list.map(d => {
+      if(d._id==id){
+          form = d
+      }else if(form===false){
+          prev = d._id
+      }else if(next===false){
+          next = d._id
+      }
+  })
+  callbackSetForm ? callbackSetForm(form) : null
+  callbackSetNext ? callbackSetNext(next) : null
+  callbackSetPrev ? callbackSetPrev(prev) : null
+  callbackSetSlide ? callbackSetSlide(slide) : null
+  callbackSetTitle ? callbackSetTitle(title) : null
+}
+
+export function formRegister(slide,callbackSetSlide,form,callbackSetForm,title,callbackSetTitle){
+  callbackSetSlide ? callbackSetSlide(slide) : null
+  callbackSetForm ? callbackSetForm(form) : null
+  callbackSetTitle ? callbackSetTitle(title) : null
 }
