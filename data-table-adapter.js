@@ -37,7 +37,8 @@ export default class extends React.Component {
       edit:false,
       seeAll:false,
       list:false,
-      search:''
+      search:'',
+      loading:false
     };
   }
 
@@ -53,33 +54,37 @@ export default class extends React.Component {
     this.setState(state,this.getListData)
   }
 
-  getListData(condition) {
-    var data = {}
-    data.condition = {}
-    data.config = this.state.config
-    if(strlen(this.state.search)>0){
+  getListData(condition){
+    if(this.props.api){
+      var data = {}
+      data.condition = {}
+      data.config = this.state.config
       data.search = this.state.search
-    }
-    if(typeof condition === 'undefined'){
-      if(this.state.seeAll===false){ data.condition = {status:1} }
-    }else{
-      data.condition = condition
-    }
 
-    if(this.props.callbackSeeAll){
-      this.props.callbackSeeAll(this.state.seeAll)
-    }
-
-    api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,data,(res) => {
-      if(res.res=="error"){
-        openMsg({text:res.error,type:-1})
+      this.setState({loading:true})
+      
+      if(typeof condition === 'undefined'){
+        if(this.state.seeAll===false){ data.condition = {status:1} }
       }else{
-        this.setState({
-          list:res.data.data,
-          config:res.data.config
-        })
+        data.condition = condition
       }
-    })
+
+      if(this.props.callbackSeeAll){
+        this.props.callbackSeeAll(this.state.seeAll)
+      }
+
+      api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,data,(res) => {
+        if(res.res=="error"){
+          openMsg({text:res.error,type:-1})
+        }else{
+          this.setState({
+            list:res.data.data,
+            config:res.data.config,
+            loading:false
+          })
+        }
+      })
+    }
   }
 
   getStdFormConfigState(){
@@ -180,7 +185,7 @@ export default class extends React.Component {
       <div className={this.props.margin}>
         <div className="form-row">
           <div className={setCols(12,12,12,12,12)}>
-            <table className="table table-bordered">
+            <table className="table table-bordered mt-2">
               <thead>
                 <tr className="dtaTop">
                   <th scope="col">
@@ -214,18 +219,7 @@ export default class extends React.Component {
       return this.preRender("Informe o config")
     }else if(this.props.data==null && this.state.list===false){
       return this.preRender("Carregando...")
-    }else{
-      if(this.props.data!=null){
-        if(this.props.data.length==0){
-          return this.preRender((this.props.title ? this.props.title + ' ' : '') + '(0)',true) 
-        }
-      }
-      if(this.state.list!==false){
-        if(this.state.list.length==0){
-          return this.preRender((this.props.title ? this.props.title + ' ' : '') + '(0)',true)
-        }
-      }
-      
+    }else{      
       var configTemp = []
       var config = []
       var mask = []
@@ -348,7 +342,7 @@ export default class extends React.Component {
       return (
         <>
           {this.props.search ? (
-            <div className="form-row">
+            <div className={this.props.margin + " form-row"}>
               <div className={setCols(12,12,6,8,8) + " mb-2 mb-md-0 "}>
                 <input type="text" className="form-control" value={this.state.search} onChange={(e) => this.setState({search: e.target.value})} onKeyDown={(e) => (e.key=="Enter" ? this.getListData() : null)} placeholder="Pesquise Aqui"/>
               </div>
@@ -361,7 +355,7 @@ export default class extends React.Component {
             </div>
           ):null}
           <div className={this.props.margin}>
-            {this.state.edit==true ? (
+            {this.state.edit===true ? (
               <div className="form-row" id="baseConfig" name="baseConfig">
                 <div className={setCols(12,12,4,3,2)}>
                   <label>Column</label>
@@ -425,7 +419,7 @@ export default class extends React.Component {
             ):null}
             <div className="form-row">
               <div className={setCols(12,12,12,12,12) + " divScrollX"}>
-                <table className="table table-bordered">
+                <table className="table table-bordered mt-2">
                   
                   {(!this.props.withoutTitle || this.props.editable) ? (
                     <thead>
@@ -433,7 +427,11 @@ export default class extends React.Component {
                         <th scope="col" colSpan={countColumns}>
                           <div className="form-row mb-0">
                             <div align="left" className={setCols(6,6,6,6,6)}>
-                              {this.props.title} ({data.length})
+                              {this.state.loading===true ? (
+                                "Carregando..."
+                              ):(
+                                (this.props.title ? this.props.title : '') + ' ' + (data.length ? '(' + data.length + ')' : '(0)')
+                              )}
                             </div>
                             {this.props.editable==true ? (
                               <div align="right" className={setCols(6,6,6,6,6)}>
