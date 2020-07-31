@@ -179,7 +179,11 @@ export default class extends React.Component {
       Object.values(this.props.content).map(c => {
         if(c.type=='number'){
           if(typeof c.precision !== 'undefined'){
-            form[c.name] = parseFloat(form[c.name]).toFixed(c.precision)
+            if(strlen(form[c.name])>0){
+              form[c.name] = parseFloat(form[c.name]).toFixed(c.precision)
+            }else{
+              form[c.name] = ''
+            }
           }
         }
       })
@@ -369,9 +373,7 @@ export default class extends React.Component {
   render(){
     return (
       <form autoComplete="off">
-        {!this.props.collection ? (
-          <div>Informe a collection</div>
-        ):!this.props.api ? (
+        {!this.props.api ? (
           <div>Informe a API</div>
         ):!this.props.content ? (
           <div>Informe o content</div>
@@ -424,6 +426,10 @@ export default class extends React.Component {
                           <option key={v.value} value={v.value}>{v.text}</option>
                         )) : null}
                       </select>
+
+                    ):c.type=='date' || c.type=='datetime' || c.type=='datetimes' ? (
+                                        
+                      <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
 
                     ):c.type=='button' ? (
                       
