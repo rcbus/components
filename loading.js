@@ -52,17 +52,14 @@ export default class extends React.Component {
   updateFrequency = () => {
     if(observerData.count[0]>0){
       if(observerData.count[0]>observerData.count[2]){
-        /*this.setState({ text:observerData.text[2] })*/
         document.getElementById("loading").innerHTML = observerData.text[2]
       }else if(observerData.count[0]>observerData.count[1]){
-        /*this.setState({ text:observerData.text[1] })*/
         document.getElementById("loading").innerHTML = observerData.text[1]
       }else{
-        /*this.setState({ text:observerData.text[0] })*/
         document.getElementById("loading").innerHTML = observerData.text[0]
       }
       if(observerData.count[0]<=observerData.count[2]){
-        observerData.count[0] = observerData.count[0] + 1;
+        observerData.count[0] = observerData.count[0] + 1
       }
     }
   }
@@ -91,6 +88,9 @@ export default class extends React.Component {
 }
 
 export function openLoading(data){
+  document.getElementById("loading").innerHTML = 'Carregando...'
+  observerData.count[0] = 1
+
   if(typeof data !== 'undefined'){
     if(typeof data.text !== 'undefined'){
       if(data.text.length>0){
