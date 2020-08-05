@@ -17,18 +17,18 @@
     opacity: 0;
 }
 
-.area-upload .lista-uploads{
-    font-size: 12px;
+.lista-uploads{
+    font-size: 16px;
 }
 
-.area-upload .lista-uploads .barra{
+.lista-uploads .barra{
     background-color: #004792;
     margin: 10px 0;
     width: 100%;
     position: relative;
 }
 
-.area-upload .lista-uploads .barra .fillB{
+.lista-uploads .barra .fillB{
     background-color: #28a745;
     position: absolute;
     top: 0;
@@ -42,35 +42,34 @@
     transition: .2s all;
 }
 
-.area-upload .lista-uploads .barra.completeB .fillB{
+.lista-uploads .barra.completeB .fillB{
     background-color: #28a745;
-    font-size: 14px;
+    font-size: 16px;
 }
 
-.area-upload .lista-uploads .barra .textB{
+.lista-uploads .barra .textB{
     padding: 3px 5px;
     position: relative;
     width: 100%;
-    font-size: 14px;
+    font-size: 16px;
 }
-.area-upload .lista-uploads .barra .textB a{
+.lista-uploads .barra .textB a{
     color: white;
     font-weight: bold;
 }
 
-.area-upload .lista-uploads .barra.error .fillB{	
+.lista-uploads .barra.error .fillB{	
     background-color: #dc3545;
     color: white;
     width: 100%;
-    font-size: 12px;
+    font-size: 16px;
 }
 
-.area-upload .lista-uploads .barra.error .textB{
+.lista-uploads .barra.error .textB{
     color: white;
 }
 
 .barra, .fillB {
-    box-shadow: 0px 0px 5px silver;
     border-radius: 3px;
 }
 
