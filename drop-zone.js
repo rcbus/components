@@ -54,7 +54,8 @@ export default class extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			dragenter:false
+			dragenter:false,
+			showList:false
 		};
 	}
 
@@ -83,6 +84,7 @@ export default class extends React.Component {
 	}
 
 	validarArquivo(file,indice){
+		this.setState({showList:true})
 		if(this.props.mime_types ? this.props.mime_types.indexOf(file.type)==-1 ? true : false : false){
 			this.aposValidar({"error" : "O arquivo " + file.name + " não é permitido!"},indice);
 		}else if(this.props.sizeLimit ? file.size > this.props.sizeLimit ? true : false : false){
@@ -201,26 +203,30 @@ export default class extends React.Component {
 			storage:this.props.storage,
 			path:this.props.path,
 			pageName:this.props.pageName,
-			ref:this.props._idRef,
+			ref:this.props.idRef,
 			bucket:this.props.bucket
 		}));
 		data.append('token',process.env.tokenApi);
 			
-		request.addEventListener('load', function(e) {
+		request.addEventListener('load',() => {
+			uploadFileClose = (uploadFileClose + 1)
+
 			if(request.response.res == "success"){
 				countB[indice] = countA[indice];
 				barra.querySelector(".fillB").style.minWidth = "100%";
 				barra.querySelector(".textB").innerHTML = request.response.name + ' carregado!';
-				barra.classList.add("completeB");
-
-				uploadFileClose = (uploadFileClose + 1)
-
-				if(callbackUploaded && uploadFileOpen==uploadFileClose){
-					callbackUploaded(request.response.data._id);
-				}
+				barra.classList.add("completeB");				
 			}else{
 				barra.querySelector(".textB").innerHTML = "Erro ao tentar enviar o arquivo" + (typeof request.response.name === 'undefined' ? '!' : ' ' + typeof request.response.name);
 				barra.classList.add("error");
+			}
+
+			if(uploadFileOpen==uploadFileClose){
+				this.setState({showList:false})
+			}
+
+			if(callbackUploaded && uploadFileOpen==uploadFileClose){
+				callbackUploaded(request.response.data._id);
 			}
 		});
 
@@ -279,33 +285,43 @@ export default class extends React.Component {
 						):(this.props.storage=="S3" && !this.props.bucket) ? (
 							<div className="texto">Informe o bucket do local de armazenamento do arquivo no S3 da AWS</div>
 						):(
-							<form method="post" encType="multipart/form-data">  
+							<>
 								<label className={this.state.dragenter===true ? "label-upload highlight" : "label-upload"} id={"label-upload" + this.props.name}>
 									<div className="texto">{this.props.text ? this.props.text : (<>Clique ou Arraste<br/>um Arquivo Aqui</>)}</div>
 								</label>
 								<input type="file" accept={this.props.mime_types ? this.props.mime_types.join() : null} id={"upload-file" + this.props.name} multiple={this.props.multiple ? this.props.multiple : true} />
-								<div className="lista-uploads" id={"lista-uploads" + this.props.name}>
-								</div>
-							</form>
+							</>
 						)}
+					</div>
+				</div>
+				<div className="base-lista-uploads">
+					<div className="form-row withoutMargin">
+						<div className={setCols(12,6,4,3,2) + ' mb-3'}>
+							<button type="button" className="btn btn-lg btn-warning btn-block" onClick={() => this.setState({showList:false})}>Fechar</button>
+						</div>
+						<div className={setCols(12,12,12,12,12)}>
+							<div className="lista-uploads" id={"lista-uploads" + this.props.name}>
+							</div>
+						</div>
 					</div>
 				</div>
 				<style jsx>{`
 					.baseAreaUpload{
 						width: 100%;
+						height: 100%;
 						min-height:${(this.props.minHeight ? this.props.minHeight : '200px')};
 						align-items: center;
 						justify-content: center;
-						display:block;
+						display:flex;
 						z-index:500;
 						position: relative;
 					}
 					.area-upload{
 						margin: 0px;
 						padding: 20px;
-						box-sizing: border-box;	
 						width: 100%;
 						display: block;
+						height: 100%;
 						min-height:${(this.props.minHeight ? this.props.minHeight : '200px')};
 						background-color: white;
 						position: relative;
@@ -330,6 +346,21 @@ export default class extends React.Component {
 						-moz-transition: .3s all;
 						-o-transition: .3s all;
 						transition: .3s all;
+					}
+
+					.base-lista-uploads{
+						position: fixed;
+						background-color:  rgba(0,40,70,0.9);
+						width: 100%;
+						height: 100%;
+						top: 0px;
+						left: 0px;
+						z-index:800;
+						display:${this.state.showList === true ? 'flex' : 'none'};
+						justify-content: top;
+						flex-direction: column;
+						padding:10%;
+						overflow: auto;
 					}
 				`}</style>
 			</>

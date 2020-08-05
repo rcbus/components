@@ -19,7 +19,7 @@ title: Título da tabela
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState,zeroLeft,strlen } from '../libs/functions'
+import { setCols,setSubState,zeroLeft,strlen,formatDate } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from '../components/loading'
 import { openMsg } from '../components/msg';
@@ -167,11 +167,6 @@ export default class extends React.Component {
     this.setState({
       formConfig:setSubState(this.state.formConfig,{[e.target.name]: e.target.value})
     });
-  }
-
-  formatData = (e) => {
-    nowTemp.setTime(e)
-    return zeroLeft(nowTemp.getDate(),2) + '/' + zeroLeft(nowTemp.getMonth()+1,2) + '/' + nowTemp.getFullYear() + ' ' + zeroLeft(nowTemp.getHours(),2) + ':' + zeroLeft(nowTemp.getMinutes(),2) + ':' + zeroLeft(nowTemp.getSeconds(),2)
   }
 
   onClickCell = (e) => {
@@ -370,6 +365,7 @@ export default class extends React.Component {
                   <select className="form-control" name="type" value={this.state.formConfig.type} onChange={this.onChangeFormConfig}>
                     <option>text</option>
                     <option>date</option>
+                    <option>date abb 1</option>
                     <option>number</option>
                   </select>
                 </div>
@@ -476,10 +472,10 @@ export default class extends React.Component {
                                   </div>
                                 </td>
                               ):(
-                                (type[k]=='date') ? ( 
+                                (type[k]=='date' || type[k]=='date abb 1') ? ( 
                                   <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
                                     <div align={align[k]}>
-                                      {this.formatData(data[k])}
+                                      {formatDate(data[k],type[k])}
                                     </div>
                                   </td>
                                 ):(

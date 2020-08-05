@@ -77,7 +77,7 @@ withoutMargin: Quando true tira a margem que tem no topo do formulário
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState, getSession, sign,decimal, zeroLeft,strlen } from '../libs/functions'
+import { setCols,setSubState, getSession, sign,decimal, zeroLeft,strlen,verifyVariable } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from './loading'
 import { openMsg } from './msg';
@@ -299,7 +299,7 @@ export default class extends React.Component {
   }
 
   getData = (k,t,p) => {
-    if(typeof this.props.data[k] !== 'undefined'){
+    if(verifyVariable(this.props.data[k])){
       return this.props.data[k]
     }else{
       return ''
@@ -339,34 +339,34 @@ export default class extends React.Component {
   }
 
   verifyPrev = () => {
-    if(typeof this.props.prev.id !== 'undefined'){
-      if(this.props.prev.id===false){
-        return true
+    if(this.props.prev){
+      if(typeof this.props.prev.id !== 'undefined'){
+        if(this.props.prev.id===false){
+          return true
+        }else{
+          return false
+        }
       }else{
         return false
       }
     }else{
-      if(this.props.prev){
-        return false
-      }else{
-        return true
-      }
+      return true
     }
   }
 
   verifyNext = () => {
-    if(typeof this.props.next.id !== 'undefined'){
-      if(this.props.next.id===false){
-        return true
+    if(this.props.next){
+      if(typeof this.props.next.id !== 'undefined'){
+        if(this.props.next.id===false){
+          return true
+        }else{
+          return false
+        }
       }else{
         return false
       }
     }else{
-      if(this.props.next){
-        return false
-      }else{
-        return true
-      }
+      return true
     }
   }
 
@@ -470,6 +470,9 @@ export function formUpdate(form,list,callbackSetForm,callbackSetList){
 }
 
 export function formModify(id,list,callbackSetForm,callbackSetList,callbackSetNext,callbackSetPrev,slide,callbackSetSlide,title,callbackSetTitle){
+  if(callbackSetForm){
+    callbackSetForm({_id:'',status:null})
+  }
   if(strlen(list)>0){
       callbackSetList(list)
   }

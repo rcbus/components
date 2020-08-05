@@ -63,10 +63,11 @@ export default async (req, res) => {
 
 /* ########## Definições das propriedades (props): ##########
 
-_idRef: ID referencia ao item a que se refere a imagem, por exemplo o ID do produto.
+idRef: ID referencia ao item a que se refere a imagem, por exemplo o ID do produto.
 api: api de upload do arquivo (importante revalidar os arquivos).
 callbackUploaded: função a ser executada após o upload.
 cols: colunas que a imagem vai ocupar no modo responsivo.
+limit: define o limite de fotos.
 maxRatio: máxima relação de altura e largura de imagem.
 maxWidth: largura de imagem máxima.
 mime_types: tipos permitidos. Ex: [ 'image/jpeg', 'image/png', 'application/pdf', 'application/doc', 'application/docx', 'application/xls', 'application/xlsx', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ]
@@ -79,6 +80,7 @@ msgErroRatio: mensagem de erro de ratio.
 multiple: quando true permite multiplos arquivos.
 name: nome do componente.
 orientation: verifica a orientação da imagem. Ex: 'portrait' ou 'landscape'
+requireIdRefToEdit: quando true exige um idRef para permitir a edição. 
 resetEvery: quando true reseta a lista a cada arquivo.
 sizeLimit: tamanho máximo permitido. Ex: 5*1024*1024 // 5MB
 storage: Local onde o arquivo será armazenado. Opções: HD,DB,S3
@@ -87,7 +89,7 @@ text: Texto que aparece quadro drag drop.
 ########## Definições das propriedades (props): ########## */
 
 import React from 'react';
-import { setCols,strlen } from '../libs/functions'
+import { setCols,strlen,count } from '../libs/functions'
 import DropZone from './drop-zone'
 import { api } from '../libs/api'
 import { openMsg } from './msg'
@@ -111,20 +113,20 @@ export default class extends React.Component {
 			storage:'',
 			update:false,
 			confirmDelete: 0,
-			_idRef:false
+			idRef:false
 		};
 	}
 
 	componentDidMount(){
-		if(this.state._idRef===false){
-			this.setState({_idRef:this.props._idRef})
+		if(this.state.idRef===false){
+			this.setState({idRef:this.props.idRef})
 			this.uploaded(false)
 		}
 	}
 
 	componentDidUpdate(){
-		if(this.state._idRef!=this.props._idRef){
-			this.setState({_idRef:this.props._idRef})
+		if(this.state.idRef!=this.props.idRef){
+			this.setState({idRef:this.props.idRef})
 			this.uploaded(false)
 		}
 	}
@@ -268,11 +270,11 @@ export default class extends React.Component {
 	}
 
 	uploaded = (_id) => {
-		if(this.props.api){
+		if(this.props.api && (!this.props.requireIdRefToEdit || (this.props.requireIdRefToEdit===true && strlen(this.props.idRef)>0))){
 			var data = {}
 			data.status = 1
 			data.pageName = this.props.pageName
-			if(this.props._idRef){ data.ref = this.props._idRef }
+			if(this.props.idRef){ data.ref = this.props.idRef }
 			api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api + '_list',process.env.tokenApi,data,(res) => {
 				if(res.res=="error"){
 					openMsg({text:res.error,type:-1})
@@ -326,6 +328,21 @@ export default class extends React.Component {
 					})
 				}
 			})
+		}else{
+			this.setState({
+				showDragDrop:false,
+				list:[],
+				path:'../noPhoto.png',
+				data:'',
+				storage:'',
+				type:'',
+				prev:false,
+				next:false,
+				count: 0,
+				current: 0,
+				_id:'',
+				_idA:''
+			})
 		}
 	}
 
@@ -336,7 +353,7 @@ export default class extends React.Component {
   	render(){
 		return (
 			<>
-				<div className={(this.props.cols ? this.props.cols : setCols(12,12,12,12,12))}>
+				<div className={setCols(12,12,12,12,12) + ' d-flex mh-100 mw-100'}>
 					<div className="basePhoto form-row withoutMargin">
 						{!this.props.name ? (
 							<div>Informe o nome</div>
@@ -354,7 +371,7 @@ export default class extends React.Component {
 							<div>Informe o bucket do local de armazenamento do arquivo no S3 da AWS</div>
 						):(
 							<>
-								{(this.state.showDragDrop===false || this.state.update) ? (
+								{(this.state.showDragDrop===false) ? (
 									<img className={setCols(12,12,12,12,12) + " photo"} id={"photo" + this.props.name} src={this.loadImage()}/>
 								):null}
 								{this.state.showDragDrop ? (
@@ -384,6 +401,7 @@ export default class extends React.Component {
 						box-shadow: 0px 0px 10px #999999;
 						border-radius:${(this.props.borderRadius ? this.props.borderRadius : '10px')};
 						position: relative;
+						min-width: 100%;
 						height: 100%;
 						min-height:${(this.props.minHeight ? this.props.minHeight : '200px')};
 						align-items: center;
@@ -490,7 +508,7 @@ export default class extends React.Component {
 						opacity: 0;
 						
 						background-color:  rgba(0,40,70,1);
-						display:${this.state.showDragDrop ? 'none' : 'block'};
+						display:${(this.state.showDragDrop || (this.props.requireIdRefToEdit===true && strlen(this.props.idRef)==0) || (this.props.limit && this.props.limit<=count(this.state.list))) ? 'none' : 'block'};
 
 						-webkit-transition: .8s all;
 						-moz-transition: .8s all;
@@ -548,7 +566,7 @@ export default class extends React.Component {
 						padding: 5px;
 						background-color:  rgba(0,40,70,1);
 						cursor: pointer;
-						display:${this.state.showDragDrop ? 'none' : 'block'};
+						display:${(this.state.showDragDrop || (this.props.requireIdRefToEdit===true && strlen(this.props.idRef)==0)) ? 'none' : 'block'};
 						opacity: 0;
 
 						-webkit-transition: .8s all;
@@ -577,7 +595,7 @@ export default class extends React.Component {
 						justify-content:center;
 						text-align:center;
 						font-size:16px;
-						z-index:501;
+						z-index: 501;
 						background-color:  rgba(230,200,0,1);
 						display:${this.state.showDragDrop ? 'flex' : 'none'};
 						
