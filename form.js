@@ -188,6 +188,7 @@ export default class extends React.Component {
         }
       })
     }
+    form._type = 'save'
     openLoading({count:[1,5,60]})
     api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
@@ -221,16 +222,21 @@ export default class extends React.Component {
   }
 
   dab = (form,type) => {
+    var statusA = form.status
     if(type=='d'){
       form.status = 0
+      form._type = 'desactive'
     }else if(type=='a'){
       form.status = 1
+      form._type = 'active'
     }else if(type=='b'){
       form.status = 2
+      form._type = 'block'
     } 
     openLoading({count:[1,5,60]})
     api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
+        form.status = statusA
         openMsg({text:res.error,type:-1})
       }else{
         if(type=='d'){

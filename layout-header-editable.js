@@ -45,6 +45,10 @@ export default class extends React.Component {
   onKey = (e) => {
     if(e=="F2"){
       Router.push('/')
+    }else if(e=="F4"){
+      if(this.props.callbackCancel){
+        this.props.callbackCancel()
+      }
     }
   }
 
