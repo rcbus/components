@@ -19,7 +19,7 @@ title: Título da tabela
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState,zeroLeft,strlen,formatDate } from '../libs/functions'
+import { setCols,setSubState,zeroLeft,strlen,formatDate,setSession,getSession } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from '../components/loading'
 import { openMsg } from '../components/msg';
@@ -46,12 +46,32 @@ export default class extends React.Component {
     var state = {}
     if(this.props.api){
       state.list = []
-      state.config = []
+      if(getSession('config',this.props.collection)){
+        state.config = getSession('config',this.props.collection)
+      }else{
+        state.config = []
+      }
     }
     if(this.props.seeAll){
       state.seeAll = this.props.seeAll
     }
+    if(getSession('seeAll',this.props.collection)){
+      state.seeAll = getSession('seeAll',this.props.collection)
+    }
+    if(getSession('search',this.props.collection)){
+      state.search = getSession('search',this.props.collection)
+    }
     this.setState(state,this.getListData)
+  }
+
+  changeSearch(e){
+    setSession('search',e.target.value,this.props.collection)
+    this.setState({search: e.target.value})
+  }
+
+  changeSeeAll(){
+    setSession('seeAll',!this.state.seeAll,this.props.collection)
+    this.setState({seeAll:!this.state.seeAll},this.getListData)
   }
 
   getListData(condition){
@@ -77,6 +97,7 @@ export default class extends React.Component {
         if(res.res=="error"){
           openMsg({text:res.error,type:-1})
         }else{
+          setSession('config',res.data.config,this.props.collection)
           this.setState({
             list:res.data.data,
             config:res.data.config,
@@ -339,10 +360,10 @@ export default class extends React.Component {
           {this.props.search ? (
             <div className={this.props.margin + " form-row"}>
               <div className={setCols(12,12,6,8,8) + " mb-2 mb-md-0 "}>
-                <input type="text" className="form-control" value={this.state.search} onChange={(e) => this.setState({search: e.target.value})} onKeyDown={(e) => (e.key=="Enter" ? this.getListData() : null)} placeholder="Pesquise Aqui"/>
+                <input type="text" className="form-control" value={this.state.search} onChange={(e) => this.changeSearch(e)} onKeyDown={(e) => (e.key=="Enter" ? this.getListData() : null)} placeholder="Pesquise Aqui"/>
               </div>
               <div className={setCols(12,6,3,2,2,1)}>
-                <button type="button" className={"btn " + (!this.state.seeAll ? "btn-secondary" : "btn-warning") + " btn-block"} onClick={() => this.setState({seeAll:!this.state.seeAll},this.getListData)}>{!this.state.seeAll ? "Ver Todos" : "Não Ver Todos"}</button>
+                <button type="button" className={"btn " + (!this.state.seeAll ? "btn-secondary" : "btn-warning") + " btn-block"} onClick={() => this.changeSeeAll()}>{!this.state.seeAll ? "Ver Todos" : "Não Ver Todos"}</button>
               </div>
               <div className={setCols(12,6,3,2,2,1)}>
                 <button type="button" className="btn btn-primary btn-block" onClick={() => (this.props.callbackRegister ? this.props.callbackRegister() : null)}>+ Cadastrar</button>

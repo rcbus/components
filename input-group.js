@@ -220,11 +220,18 @@ export default class extends React.Component {
     open = () => {
         if(!this.props.msg){
             this.setState({show:true})
-        }else if(strlen(this.props.msg.c.confirm)>0){
-            openMsg({text:this.props.msg.c.confirm,type:0,textYes:'Sim',textNo:'Não',callbackYes:() => {
-                this.setState({show:true})
-                closeMsg()
-            }})
+        }else if(strlen(this.props.msg.c)>0){
+            if(strlen(this.props.msg.c.confirm)>0){
+                openMsg({text:this.props.msg.c.confirm,type:0,textYes:'Sim',textNo:'Não',callbackYes:() => {
+                    this.setState({show:true})
+                    closeMsg()
+                }})
+            }else{
+                openMsg({text:this.props.msg,type:0,textYes:'Sim',textNo:'Não',callbackYes:() => {
+                    this.setState({show:true})
+                    closeMsg()
+                }})
+            }
         }else{
             openMsg({text:this.props.msg,type:0,textYes:'Sim',textNo:'Não',callbackYes:() => {
                 this.setState({show:true})
