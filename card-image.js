@@ -94,13 +94,16 @@ import DropZone from './drop-zone'
 import { api } from '../libs/api'
 import { openMsg } from './msg'
 
+const pathPublic = process.env.protocol + '://' + process.env.host + ':' + process.env.port + '/'
+const noPhoto = pathPublic + 'noPhoto.png'
+const edit = pathPublic + 'edit.png'
 export default class extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			showDragDrop: false,
 			list: [],
-			path: '../noPhoto.png',
+			path: noPhoto,
 			data: '',
 			type: '',
 			prev: false,
@@ -185,10 +188,10 @@ export default class extends React.Component {
 			if(strlen(this.state.data)>0 && strlen(this.state.type)>0){
 				return 'data:' + this.state.type + ';base64,' + this.state.data
 			}else{
-				return '../noPhoto.png'
+				return noPhoto
 			}
 		}else{
-			return '../noPhoto.png'
+			return noPhoto
 		}
 	}
 
@@ -284,7 +287,7 @@ export default class extends React.Component {
 					var storageTemp = this.state.storage
 					var typeTemp = this.state.type
 					if(_id===false){
-						pathTemp = '../noPhoto.png'
+						pathTemp = noPhoto
 						dataTemp = ''
 						storageTemp = ''
 						typeTemp = ''
@@ -332,7 +335,7 @@ export default class extends React.Component {
 			this.setState({
 				showDragDrop:false,
 				list:[],
-				path:'../noPhoto.png',
+				path:noPhoto,
 				data:'',
 				storage:'',
 				type:'',
@@ -387,7 +390,7 @@ export default class extends React.Component {
 								<div className={setCols(6,6,6,6,6) + " noselect photoButton" + (this.state.next ? '' : " photoButtonDesactive") + " photoButtonRight"} id="buttonRight" onClick={() => this.nextPrev(this.state.next)} onMouseOver={() => this.mouseOver()} onMouseOut={() => this.mouseOut()}>{">"}</div>
 								<div className={"photoCount noselect" + (this.state.showCount ? ' photoCountHover' : '')} onMouseOver={() => this.mouseOver()} onMouseOut={() => this.mouseOut()}>{this.state.current + '/' + this.state.count}</div>
 								{this.state.count > 0 ? (
-									<img className={"photoEdit noselect" + (this.state.showCount ? ' photoCountHover' : '')} id={"photoEdit" + this.props.name} src={'../edit.png'} onClick={() => this.update()}  onMouseOver={() => this.mouseOver()} onMouseOut={() => this.mouseOut()}/>
+									<img className={"photoEdit noselect" + (this.state.showCount ? ' photoCountHover' : '')} id={"photoEdit" + this.props.name} src={edit} onClick={() => this.update()}  onMouseOver={() => this.mouseOver()} onMouseOut={() => this.mouseOut()}/>
 								):null}
 								<div className={"photoAddDel noselect photoAdd" + (this.state.showCount ? ' photoCountHover' : '')} onClick={() => this.register()} id="buttonAdd" onMouseOver={() => this.mouseOver()} onMouseOut={() => this.mouseOut()}>+</div>
 								<div className={"photoAddDel noselect photoDel" + (this.state.showCount ? ' photoCountHover' : '') + (this.state.confirmDelete==2 ? ' photoDelDisable' : '')} onClick={() => this.delete()} id="buttonDel" onMouseOver={() => this.mouseOver()} onMouseOut={() => this.mouseOut()} disabled={(this.state.confirmDelete==2 ? true : false)}>{(this.state.confirmDelete>0 ? 'Confirma?' : 'Excluir')}</div>
