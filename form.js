@@ -427,7 +427,7 @@ export default class extends React.Component {
                     ):c.type=='select' ? (
 
                       <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision)}>
-                        {typeof c.optionNull !== 'undefined' ? <option value=""></option> : null }
+                        {typeof c.optionNull !== 'undefined' ? <option value="">{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option> : null }
                         {typeof c.data !== 'undefined' ? Object.values(c.data).map(v => (
                           <option key={v.value} value={v.value}>{v.text}</option>
                         )) : null}
