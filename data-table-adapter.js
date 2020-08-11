@@ -15,6 +15,7 @@ margin: É uma classe adicional adicionada na div base do component, essa classe
 
 order: Array com os nomes das colunas na ordem que devem aparecer
 seeAll: Serve para o componente pai definir o estado de seeAll conservado
+statusGte: Quanto true status é maior ou igual a 1
 title: Título da tabela 
 
 ########## Definições das propriedades (props): ########## */
@@ -77,14 +78,20 @@ export default class extends React.Component {
   getListData(condition){
     if(this.props.api){
       var data = {}
+      var status = {status:1}
+
       data.condition = {}
       data.config = this.state.config
       data.search = this.state.search
 
       this.setState({loading:true})
+
+      if(this.props.statusGte){
+        status = {status:{$gte:1}}
+      }
       
       if(typeof condition === 'undefined'){
-        if(this.state.seeAll===false){ data.condition = {status:1} }
+        if(this.state.seeAll===false){ data.condition = status }
       }else{
         data.condition = condition
       }
