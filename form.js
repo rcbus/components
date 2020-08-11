@@ -67,6 +67,8 @@ next: É um objeto contendo o próximo id da lista e uma função para seta-lo:
 
       OBS: Ou pode usar o next direto e usar a callbackNext.
 notAdjustDecimal: Quando definido não ajusta as casas decimais dos números.
+optionNull: Quando true cria a opção nulo. Quanto incluído um texto o mesmo aparece como opção.
+optionNullDisabled: Quando true apresenta a opção nulo mas disabilita impedindo o usuario de escolher ela novamente depois.
 prev: É um objeto contendo o id anterior da lista e uma função para seta-lo:
       
       {{id:prev,set:clickCell}}
@@ -77,7 +79,7 @@ withoutMargin: Quando true tira a margem que tem no topo do formulário
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState, getSession, sign,decimal, zeroLeft,strlen,verifyVariable } from '../libs/functions'
+import { setCols,setSubState, getSession, sign,decimal, zeroLeft,strlen,verifyVariable,count } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from './loading'
 import { openMsg } from './msg';
@@ -426,8 +428,12 @@ export default class extends React.Component {
                     
                     ):c.type=='select' ? (
 
-                      <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision)}>
-                        {typeof c.optionNull !== 'undefined' ? <option value="">{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option> : null }
+                      <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision)} disabled={c.readOnly ? true : false}>
+                        {typeof c.optionNull !== 'undefined' ? (typeof c.optionNullDisabled !== 'undefined' ? (
+                          <option value="" disabled={true} hidden={true}>{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option>
+                        ):( 
+                          <option value="">{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option>
+                        )): null }
                         {typeof c.data !== 'undefined' ? Object.values(c.data).map(v => (
                           <option key={v.value} value={v.value}>{v.text}</option>
                         )) : null}
@@ -450,11 +456,13 @@ export default class extends React.Component {
             {this.props.button ? (
               <div className={!this.props.withoutMargin ? "form-row" : "form-row withoutMargin"}>
                 {Object.values(this.props.button).map(c => (
-                  (c.where ? this.verifyWhere(c.where) : true) ? (  
-                    <div key={c.name} className={c.cols + " " + this.props.margin}>
-                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
-                    </div>
-                  ):null
+                  (verifyVariable(c.name) && (
+                    (c.where ? this.verifyWhere(c.where) : true) ? (  
+                      <div key={c.name} className={c.cols + " " + this.props.margin}>
+                        <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
+                      </div>
+                    ):null
+                  ))
                 ))}
               </div>
             ):null}
