@@ -79,10 +79,12 @@ withoutMargin: Quando true tira a margem que tem no topo do formulário
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState, getSession, sign,decimal, zeroLeft,strlen,verifyVariable,count } from '../libs/functions'
+import { setCols,setSubState, getSession, sign,decimal, zeroLeft,strlen,verifyVariable,count,strlower } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from './loading'
 import { openMsg } from './msg';
+import CheckboxGroup from './checkbox-group'
+import InputGroup from './input-group'
 
 export default class extends React.Component {
   constructor(props) {
@@ -95,6 +97,36 @@ export default class extends React.Component {
       this.props.callbackSetForm({...this.props.data,[e.target.name]:e.target.value})
     }else if(typeof this.props.callbackChange !== 'undefined'){
       this.props.callbackChange(e)
+    }
+  }
+
+  changeInputGroup = (name,form,columns) => {
+    if(count(columns)>0 && verifyVariable(form._id)){
+      var update = true
+      var text = ''
+      columns.map(c => {
+        if(strlen(form[c])==0){
+            update = false
+        }else{
+            if(strlen(text)>0){
+                text += ' - '
+            } 
+            text += form[c]
+        }
+      })
+      if(strlen(text)>0 && update===true){
+        var formTemp = {}
+        formTemp = {...formTemp,[name]:form._id}
+        if(verifyVariable(form.code)){ 
+          formTemp = {...formTemp,[name + '_code']:form.code} 
+        }
+        formTemp = {...formTemp,[name + '_text']:text}
+        if(typeof this.props.callbackSetForm !== 'undefined'){
+          this.props.callbackSetForm({...this.props.data,...formTemp})
+        }else if(typeof this.props.callbackChange !== 'undefined'){
+          this.props.callbackChange({...formTemp})
+        }
+      }
     }
   }
 
@@ -170,6 +202,20 @@ export default class extends React.Component {
     }
     if(typeof callback !== 'undefined'){
       callback()
+    }
+  }
+
+  desactiveInputGroup = (name) => {
+    var formTemp = this.props.data
+     
+    if(verifyVariable(formTemp[name])){ formTemp[name] = '' }
+    if(verifyVariable(formTemp[name + '_code'])){ formTemp[name + '_code'] = '' }
+    if(verifyVariable(formTemp[name + '_text'])){ formTemp[name + '_text'] = '' }
+      
+    if(typeof this.props.callbackSetForm !== 'undefined'){
+      this.props.callbackSetForm({...formTemp})
+    }else if(typeof this.props.callbackChange !== 'undefined'){
+      this.props.callbackChange({...formTemp})
     }
   }
 
@@ -442,6 +488,14 @@ export default class extends React.Component {
                     ):c.type=='date' || c.type=='datetime' || c.type=='datetimes' ? (
                                         
                       <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
+                    
+                    ):strlower(c.type)=='checkboxgroup' ? (
+
+                      <CheckboxGroup name={c.name} text={verifyVariable(c.text) ? c.text : ''} callbackChange={(e) => this.change(e)} value={this.getData(c.name,c.type,c.precision)}/>
+                    
+                    ):strlower(c.type)=='inputgroup' ? (
+
+                      <InputGroup name={c.name} placeholder={verifyVariable(c.placeholder) ? c.placeholder : ''} value={this.getData(c.name + '_text',c.type,c.precision)} collection={verifyVariable(c.collection) ? c.collection : ''} api={verifyVariable(c.api) ? c.api : ''} callbackClickCell={(form) => this.changeInputGroup(c.name,form,(verifyVariable(c.columns) ? c.columns : []))} condition={(verifyVariable(c.condition) ? c.condition : undefined)} callbackDesactive={() => this.desactiveInputGroup(c.name,(verifyVariable(c.columns) ? c.columns : []))} />
 
                     ):c.type=='button' ? (
                       
