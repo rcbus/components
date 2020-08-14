@@ -1,6 +1,20 @@
 /* ########## Definições das propriedades (props): ##########
 
+api:    É a api que faz a interação direta de alteração do banco de dados.
+callbackChange:     Função de retorno do change.
+callbackSetForm:    Função de retorno após a alteração do checkbox.
+cols:   É a definição de colunas do modo responsivo.
+data:   É o objeto de dados do formulário principal.
+idRef:  É o ID do cadastro principal ao qual esse checkbox está ligado.
+label:  É o rótulo do checkbox.
+msg:    É um objeto e os atributos/propriedades desse objeto definem a mensagem que será exibida:
+        
+        {confirm:'Deseja alterar?'},
+        {success:'Alterado com sucesso!'}
 
+name:   É o nome do checkbox.
+text:   É o texto que aparece a direita do checkbox.
+value:  É o valor do checkbox.
 
 ########## Definições das propriedades (props): ########## */
 
@@ -18,16 +32,23 @@ export default class extends React.Component {
     }
 
     change = (e) => {
-        /*console.log(this.props.value)
-        console.log(e.target.checked)*/
         if(e.target.checked!=null){
             var checked = e.target.checked
-            if(this.props.msg){
-                if(this.props.msg.confirm){
-                    openMsg({text:this.props.msg.confirm,type:-1,textYes:'Sim',textNo:'Não',callbackYes:() => this.save(checked)})
-                }else{
-                    this.save(e.target.checked)
+            if(strlen(this.props.api)>0){
+                if(this.props.msg){
+                    if(this.props.msg.confirm){
+                        openMsg({text:this.props.msg.confirm,type:-1,textYes:'Sim',textNo:'Não',callbackYes:() => this.save(checked)})
+                    }else{
+                        this.save(e.target.checked)
+                    }
                 }
+            }else if(this.props.callbackChange){
+                if(e.target.checked===false){
+                    e.target.value = 0
+                }else{
+                    e.target.value = 1
+                }
+                this.props.callbackChange(e)
             }
         }
     }
@@ -81,11 +102,17 @@ export default class extends React.Component {
                                 <input type="checkbox" name={this.props.name} checked={this.props.value==1 ? true : false} onChange={this.change} />
                             </div>
                         </div>
-                        <div className={"form-control" + (this.props.value==1 ? ' stdRed' : '')} name={"texto" + this.props.name}>
+                        <div className={"checkboxText form-control" + (this.props.value==1 ? ' stdRed' : '')} name={"texto" + this.props.name}>
                             {this.props.text}
                         </div>
                     </div>
                 </div>
+                <style jsx>{`
+					.checkboxText {
+                        overflow:auto;
+                        white-space: nowrap;
+                    }
+                `}</style>
             </>
         )
     }

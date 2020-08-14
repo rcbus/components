@@ -14,7 +14,7 @@ value: Valor do componente
 
 ########## Definições das propriedades (props): ########## */
 
-import {setCols,strlen,count} from '../libs/functions'
+import {setCols,strlen,count,verifyVariable} from '../libs/functions'
 import Dta from '../components/data-table-adapter'
 import {api} from '../libs/api'
 import { openMsg,closeMsg } from '../components/msg'
@@ -32,7 +32,11 @@ export default class extends React.Component {
     }
 
     componentDidMount(){
-        this.getListData()
+        if(this.props.condition){
+            this.getListData(this.props.condition)
+        }else{
+            this.getListData()
+        }
     }
 
     change = (e) => {
@@ -51,7 +55,7 @@ export default class extends React.Component {
                         }
                         closeMsg()
                     }})
-                }else if(strlen(this.props.msg.d.confirm)>0){
+                }else if(verifyVariable(this.props.msg) && verifyVariable(this.props.msg.d) && verifyVariable(this.props.msg.d.confirm)){
                     openMsg({text:this.props.msg.d.confirm,type:0,textYes:'Sim',textNo:'Não',callbackYes:() => {
                         if(this.props.callbackDesactive){
                             this.props.callbackDesactive()
@@ -98,7 +102,11 @@ export default class extends React.Component {
         if(formTemp!==false){
             if(strlen(this.props.apiForm)==0){
                 if(this.props.callbackClickCell){
-                    this.props.callbackClickCell(formTemp)
+                    if(strlen(this.props.columns)==0){
+                        this.props.callbackClickCell(formTemp)
+                    }else{
+                        this.props.callbackClickCell(formTemp,this.props.columns)
+                    }
                 }
                 this.close()
             }else{
@@ -196,25 +204,27 @@ export default class extends React.Component {
     }
 
     getListData = (e) => {
-        var data = {}
-        data.condition = {}
-        data.config = this.state.config
-        data.search = this.state.search
-        if(typeof e === 'undefined'){
-          data.condition = {$or:[{status:1},{status:2}]}
-        }else{
-          data.condition = e
-        }
-        api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,data,(res) => {
-          if(res.res=="error"){
-            openMsg({text:res.error,type:-1})
-          }else{
-            this.setState({
-                list:res.data.data,
-                config:res.data.config
+        if(strlen(this.props.api)>0){
+            var data = {}
+            data.condition = {}
+            data.config = this.state.config
+            data.search = this.state.search
+            if(typeof e === 'undefined'){
+                data.condition = {$or:[{status:1},{status:2}]}
+            }else{
+                data.condition = e
+            }
+            api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,data,(res) => {
+                if(res.res=="error"){
+                    openMsg({text:res.error,type:-1})
+                }else{
+                    this.setState({
+                        list:res.data.data,
+                        config:res.data.config
+                    })
+                }
             })
-          }
-        })
+        }
     }
 
     open = () => {

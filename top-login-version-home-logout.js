@@ -13,7 +13,7 @@ export default function Top({className}){
     }
 
     function keyPress(e){
-        console.log('teste')
+        
     }
 
     return(
