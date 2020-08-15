@@ -7,6 +7,7 @@ collection: A coleção ou tabela do banco de dados
 config: Objeto contendo informações de configuração dessa tabela vindo de um banco de dados
 data: Dados da tabela. Um objeto contendo pelo menos o campo _id
 editable: Quando true permite editar as configurações da tabela
+idRef: É o ID de referencia, quando uma informação está ligada a outra informação
 margin: É uma classe adicional adicionada na div base do component, essa classe pode 
         ser específica definida em um css ou usando as definições do bootstrap como 
         por exemplo: 
@@ -39,7 +40,8 @@ export default class extends React.Component {
       seeAll:false,
       list:false,
       search:'',
-      loading:false
+      loading:false,
+      idRef:false,
     };
   }
 
@@ -62,7 +64,22 @@ export default class extends React.Component {
     if(getSession('search',this.props.collection)){
       state.search = getSession('search',this.props.collection)
     }
+    if(this.props.idRef){
+      state.idRef = this.props.idRef
+    }
     this.setState(state,this.getListData)
+  }
+
+  componentDidUpdate(){
+    if(this.props.idRef){
+      if(this.state.idRef!=this.props.idRef){
+        this.setState({idRef:this.props.idRef},this.getListData)
+      }
+    }else if(this.props.data){
+      if(this.state.list!=this.props.data){
+        this.getListData()
+      }
+    }
   }
 
   changeSearch(e){
@@ -94,6 +111,10 @@ export default class extends React.Component {
         if(this.state.seeAll===false){ data.condition = status }
       }else{
         data.condition = condition
+      }
+
+      if(this.props.idRef){
+        data.condition = {...data.condition,idRef:this.props.idRef}
       }
 
       if(this.props.callbackSeeAll){

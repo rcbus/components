@@ -44,6 +44,7 @@ content:  É um array de objetos que contém as definições de cada componente 
             }
           ]
 data: Dados do formulário
+idRef: É o ID de referencia, quando uma informação está ligada a outra informação
 margin: É uma classe adicional adicionada na div base do component, essa classe pode 
         ser específica definida em um css ou usando as definições do bootstrap como 
         por exemplo: 
@@ -237,6 +238,9 @@ export default class extends React.Component {
       })
     }
     form._type = 'save'
+    if(strlen(form._id)==0 && this.props.idRef){
+      form.idRef = this.props.idRef;
+    }
     openLoading({count:[1,5,60]})
     api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
@@ -438,83 +442,87 @@ export default class extends React.Component {
         ):(
           <div>
             <div className={!this.props.withoutMargin ? "form-base form-row" : "form-base withoutMargin form-row"}>
-              {Object.values(this.props.content).map(c => (
-                (c.where ? this.verifyWhere(c.where) : true) ? (  
-                  <div key={c.name} className={c.cols + " " + this.props.margin}>
+              {(verifyVariable(this.props.slide)===false || this.props.slide === true) &&
+                Object.values(this.props.content).map(c => (
+                  (c.where ? this.verifyWhere(c.where) : true) ? (  
+                    <div key={c.name} className={c.cols + " " + this.props.margin}>
 
-                    {c.label ? (
-                      <label>{c.label}</label>
-                    ):null}
+                      {c.label ? (
+                        <label>{c.label}</label>
+                      ):null}
 
-                    {c.type=='_id' ? (
+                      {c.type=='_id' ? (
+                        
+                        <div className="btn-group special">
+                          <button type="button" name="prev" className="btn btn-secondary" disabled={this.verifyPrev()} onClick={() => this.prev()}>{"<"}</button>
+                          <button type="button" name={c.name} className="middle btn btn-outline-dark" disabled>{this.getData(c.name,c.type,c.precision)}</button>
+                          <button type="button" name="next" className="btn btn-secondary" disabled={this.verifyNext()} onClick={() => this.next()}>{">"}</button>
+                        </div>
+
+                      ):c.type=='status' ? (
+
+                        <div>
+                          <div className={"std form-control text-center " + c.className[this.getData(c.name,c.type,c.precision)]}>{c.mask[this.getData(c.name,c.type,c.precision)]}</div>
+                        </div>
+
+                      ):c.type=='text' ? (
                       
-                      <div className="btn-group special">
-                        <button type="button" name="prev" className="btn btn-secondary" disabled={this.verifyPrev()} onClick={() => this.prev()}>{"<"}</button>
-                        <button type="button" name={c.name} className="middle btn btn-outline-dark" disabled>{this.getData(c.name,c.type,c.precision)}</button>
-                        <button type="button" name="next" className="btn btn-secondary" disabled={this.verifyNext()} onClick={() => this.next()}>{">"}</button>
-                      </div>
-
-                    ):c.type=='status' ? (
-
-                      <div>
-                        <div className={"std form-control text-center " + c.className[this.getData(c.name,c.type,c.precision)]}>{c.mask[this.getData(c.name,c.type,c.precision)]}</div>
-                      </div>
-
-                    ):c.type=='text' ? (
-                    
-                      <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
-                    
-                    ):c.type=='number' ? (
-                    
-                      <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
-                    
-                    ):c.type=='textarea' ? (
-                    
-                      <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} readOnly={c.readOnly ? true : false}></textarea>
-                    
-                    ):c.type=='select' ? (
-
-                      <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision)} disabled={c.readOnly ? true : false}>
-                        {typeof c.optionNull !== 'undefined' ? (typeof c.optionNullDisabled !== 'undefined' ? (
-                          <option value="" disabled={true} hidden={true}>{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option>
-                        ):( 
-                          <option value="">{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option>
-                        )): null }
-                        {typeof c.data !== 'undefined' ? Object.values(c.data).map(v => (
-                          <option key={v.value} value={v.value}>{v.text}</option>
-                        )) : null}
-                      </select>
-
-                    ):c.type=='date' || c.type=='datetime' || c.type=='datetimes' ? (
-                                        
-                      <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
-                    
-                    ):strlower(c.type)=='checkboxgroup' ? (
-
-                      <CheckboxGroup name={c.name} text={verifyVariable(c.text) ? c.text : ''} callbackChange={(e) => this.change(e)} value={this.getData(c.name,c.type,c.precision)}/>
-                    
-                    ):strlower(c.type)=='inputgroup' ? (
-
-                      <InputGroup name={c.name} placeholder={verifyVariable(c.placeholder) ? c.placeholder : ''} value={this.getData(c.name + '_text',c.type,c.precision)} collection={verifyVariable(c.collection) ? c.collection : ''} api={verifyVariable(c.api) ? c.api : ''} callbackClickCell={(form) => this.changeInputGroup(c.name,form,(verifyVariable(c.columns) ? c.columns : []))} condition={(verifyVariable(c.condition) ? c.condition : undefined)} callbackDesactive={() => this.desactiveInputGroup(c.name,(verifyVariable(c.columns) ? c.columns : []))} />
-
-                    ):c.type=='button' ? (
+                        <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
                       
-                      <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
-                    
-                    ):null}
-                  </div>
-                ):null
-              ))}
+                      ):c.type=='number' ? (
+                      
+                        <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
+                      
+                      ):c.type=='textarea' ? (
+                      
+                        <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} readOnly={c.readOnly ? true : false}></textarea>
+                      
+                      ):c.type=='select' ? (
+
+                        <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision)} disabled={c.readOnly ? true : false}>
+                          {typeof c.optionNull !== 'undefined' ? (typeof c.optionNullDisabled !== 'undefined' ? (
+                            <option value="" disabled={true} hidden={true}>{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option>
+                          ):( 
+                            <option value="">{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option>
+                          )): null }
+                          {typeof c.data !== 'undefined' ? Object.values(c.data).map(v => (
+                            <option key={v.value} value={v.value}>{v.text}</option>
+                          )) : null}
+                        </select>
+
+                      ):c.type=='date' || c.type=='datetime' || c.type=='datetimes' ? (
+                                          
+                        <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false}/>
+                      
+                      ):strlower(c.type)=='checkboxgroup' ? (
+
+                        <CheckboxGroup name={c.name} text={verifyVariable(c.text) ? c.text : ''} callbackChange={(e) => this.change(e)} value={this.getData(c.name,c.type,c.precision)}/>
+                      
+                      ):strlower(c.type)=='inputgroup' ? (
+
+                        <InputGroup name={c.name} placeholder={verifyVariable(c.placeholder) ? c.placeholder : ''} value={this.getData(c.name + '_text',c.type,c.precision)} collection={verifyVariable(c.collection) ? c.collection : ''} api={verifyVariable(c.api) ? c.api : ''} callbackClickCell={(form) => this.changeInputGroup(c.name,form,(verifyVariable(c.columns) ? c.columns : []))} condition={(verifyVariable(c.condition) ? c.condition : undefined)} callbackDesactive={() => this.desactiveInputGroup(c.name,(verifyVariable(c.columns) ? c.columns : []))} />
+
+                      ):c.type=='button' ? (
+                        
+                        <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
+                      
+                      ):null}
+                    </div>
+                  ):null
+                )
+              )}
             </div>
           
             {this.props.button ? (
               <div className={!this.props.withoutMargin ? "form-row" : "form-row withoutMargin"}>
                 {Object.values(this.props.button).map(c => (
                   (verifyVariable(c.name) && (
-                    (c.where ? this.verifyWhere(c.where) : true) ? (  
-                      <div key={c.name} className={c.cols + " " + this.props.margin}>
-                        <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
-                      </div>
+                    (c.where ? this.verifyWhere(c.where) : true) ? ( 
+                      (verifyVariable(this.props.slide)===false || this.props.slide === true || c.name=='register') && (
+                        <div key={c.name} className={c.cols + " " + this.props.margin}>
+                          <button type="button" name={c.name} className={"btn " + c.className} onClick={(e) => this.click(e,c.callback)}>{c.innerHTML}</button>
+                        </div>
+                      )
                     ):null
                   ))
                 ))}
