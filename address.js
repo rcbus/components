@@ -125,8 +125,6 @@ export default class extends React.Component {
                     <>Informe o data</>
                 ):!this.props.list ? (
                     <>Informe o list</>
-                ):!this.props.collection ? (
-                    <>Informe o collection</>
                 ):!this.props.api ? (
                     <>Informe o api</>
                 ):!this.props.callbackSetForm ? (
@@ -135,7 +133,7 @@ export default class extends React.Component {
                     <>Informe o callbackSetList</>
                 ):(
                     <Form 
-                        collection={this.props.collection}
+                        name={this.props.name}
                         api={this.props.api}
                         data={this.props.data}
                         callbackUpdate={(form) => this.handleFormUpdate(form)}

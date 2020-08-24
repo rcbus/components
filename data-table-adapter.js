@@ -21,7 +21,7 @@ title: Título da tabela
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState,zeroLeft,strlen,formatDate,setSession,getSession } from '../libs/functions'
+import { setCols,setSubState,zeroLeft,strlen,formatDate,formatNumber,setSession,getSession } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from '../components/loading'
 import { openMsg } from '../components/msg';
@@ -42,6 +42,7 @@ export default class extends React.Component {
       search:'',
       loading:false,
       idRef:false,
+      update:0
     };
   }
 
@@ -79,6 +80,9 @@ export default class extends React.Component {
       if(this.state.list!=this.props.data){
         this.getListData()
       }
+    }
+    if(this.props.update!=this.state.update){
+      this.setState({update:this.props.update},this.getListData)
     }
   }
 
@@ -462,7 +466,7 @@ export default class extends React.Component {
                 </div>
               </div>
             ):null}
-            <div className="form-row">
+            <div className="form-row withoutMargin">
               <div className={setCols(12,12,12,12,12) + " divScrollX"}>
                 <table className="table table-bordered mt-2">
                   
@@ -528,11 +532,19 @@ export default class extends React.Component {
                                     </div>
                                   </td>
                                 ):(
-                                  <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                    <div align={align[k]}>
-                                      {data[k]}
-                                    </div>
-                                  </td>
+                                  (type[k]=='number') ? ( 
+                                    <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
+                                      <div align={align[k]}>
+                                        {formatNumber(data[k])}
+                                      </div>
+                                    </td>
+                                  ):(
+                                    <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
+                                      <div align={align[k]}>
+                                        {data[k]}
+                                      </div>
+                                    </td>
+                                  )
                                 )
                               )
                             )

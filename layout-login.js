@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Version from '../version-app'
 import Loading from './loading'
 import Msg, { openMsg } from './msg'
-import { setCols,setSubState,setSession,getSession } from '../libs/functions'
+import { setCols,setSubState,setSession,getSession,unSetSession } from '../libs/functions'
 import Router from 'next/router'
 
 const now = new Date();
@@ -42,6 +42,7 @@ export default class extends React.Component {
           type:'admin'
         }
         if(setSession("userData",user)){
+          unSetSession("menu","home")
           Router.push('/')
         }
       }
@@ -68,8 +69,21 @@ export default class extends React.Component {
                 <div className={setCols(12,9,6,4,3) + "container layout-login-super-card"}>
                   <form autoComplete="off">
                     <div className={setCols(12,12,12,12,12)}>
+                      <div className="d-flex justify-content-center">
+                        <img className="favicon" src="favicon.png" />
+                      </div>
+                      <style jsx>{`
+                        .favicon{
+                          border-radius:15px;
+                          margin-bottom:25px;
+                          border:2px;
+                          border-style:solid;
+                          border-color:rgb(180,180,180);
+                          box-shadow: 0px 0px 10px;
+                        }
+                      `}</style>
                       <div className="w-100 text-center">
-                        <h3>Seja Bem Vindo!</h3><br/>
+                        <h4>Seja Bem Vindo!</h4>
                       </div>
                     </div>
                     <div className={setCols(12,12,12,12,12)}>

@@ -80,6 +80,7 @@ msgErroRatio: mensagem de erro de ratio.
 multiple: quando true permite multiplos arquivos.
 name: nome do componente.
 orientation: verifica a orientação da imagem. Ex: 'portrait' ou 'landscape'
+readOnly: quando true não permite que adicione ou editar imagens
 requireIdRefToEdit: quando true exige um idRef para permitir a edição. 
 resetEvery: quando true reseta a lista a cada arquivo.
 sizeLimit: tamanho máximo permitido. Ex: 5*1024*1024 // 5MB
@@ -511,7 +512,7 @@ export default class extends React.Component {
 						opacity: 0;
 						
 						background-color:  rgba(0,40,70,1);
-						display:${(this.state.showDragDrop || (this.props.requireIdRefToEdit===true && strlen(this.props.idRef)==0) || (this.props.limit && this.props.limit<=count(this.state.list))) ? 'none' : 'block'};
+						display:${(this.state.showDragDrop || (this.props.requireIdRefToEdit===true && strlen(this.props.idRef)==0) || (this.props.limit && this.props.limit<=count(this.state.list)) || this.props.readOnly===true) ? 'none' : 'block'};
 
 						-webkit-transition: .8s all;
 						-moz-transition: .8s all;
@@ -569,7 +570,7 @@ export default class extends React.Component {
 						padding: 5px;
 						background-color:  rgba(0,40,70,1);
 						cursor: pointer;
-						display:${(this.state.showDragDrop || (this.props.requireIdRefToEdit===true && strlen(this.props.idRef)==0)) ? 'none' : 'block'};
+						display:${(this.state.showDragDrop || (this.props.requireIdRefToEdit===true && strlen(this.props.idRef)==0) || this.props.readOnly===true) ? 'none' : 'block'};
 						opacity: 0;
 
 						-webkit-transition: .8s all;
