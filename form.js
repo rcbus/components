@@ -241,6 +241,9 @@ export default class extends React.Component {
     if(strlen(form._id)==0 && this.props.idRef){
       form.idRef = this.props.idRef;
     }
+    if(this.props.name){
+      form._name = this.props.name
+    }
     openLoading({count:[1,5,60]})
     api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
@@ -285,6 +288,9 @@ export default class extends React.Component {
       form.status = 2
       form._type = 'block'
     } 
+    if(this.props.name){
+      form._name = this.props.name
+    }
     openLoading({count:[1,5,60]})
     api(process.env.protocolApi + '://' + process.env.hostApi + ':' + process.env.portApi + '/' + this.props.api,process.env.tokenApi,form,(res) => {
       if(res.res=="error"){
@@ -496,7 +502,7 @@ export default class extends React.Component {
                       
                       ):strlower(c.type)=='checkboxgroup' ? (
 
-                        <CheckboxGroup name={c.name} text={verifyVariable(c.text) ? c.text : ''} callbackChange={(e) => this.change(e)} value={this.getData(c.name,c.type,c.precision)}/>
+                        <CheckboxGroup name={c.name} text={verifyVariable(c.text) ? c.text : ''} callbackChange={(e) => { this.change(e),(verifyVariable(c.callback) && c.callback(e)) }} value={this.getData(c.name,c.type,c.precision)}/>
                       
                       ):strlower(c.type)=='inputgroup' ? (
 
