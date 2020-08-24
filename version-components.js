@@ -11,6 +11,7 @@ export default function Version() {
 /*
 Histórico de versões
 
+
 1.1.9 - 23/08/2020
 1.1.8 - 15/08/2020
 1.1.7 - 13/08/2020
