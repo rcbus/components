@@ -81,8 +81,10 @@ export default class extends React.Component {
         this.getListData()
       }
     }
-    if(this.props.update!=this.state.update){
-      this.setState({update:this.props.update},this.getListData)
+    if(this.props.update){
+      if(this.props.update!=this.state.update){
+        this.setState({update:this.props.update},this.getListData)
+      }
     }
   }
 
