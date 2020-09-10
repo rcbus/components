@@ -1,5 +1,6 @@
 /* ########## Definições das propriedades (props): ##########
 
+button: Array de propriedades de botões que serão inseridos na tabela
 callbackClickCell: Função de retorno do click em uma célula
 callbackRegister: Função de retorno do click do botão cadastrar
 callbackSeeAll: Função para conservar o estado do seeAll
@@ -17,11 +18,12 @@ margin: É uma classe adicional adicionada na div base do component, essa classe
 order: Array com os nomes das colunas na ordem que devem aparecer
 seeAll: Serve para o componente pai definir o estado de seeAll conservado
 statusGte: Quanto true status é maior ou igual a 1
+statusField: define o nome do campo status, caso seja diferente
 title: Título da tabela 
 
 ########## Definições das propriedades (props): ########## */
 
-import { setCols,setSubState,zeroLeft,strlen,formatDate,formatNumber,setSession,getSession } from '../libs/functions'
+import { setCols,setSubState,zeroLeft,strlen,formatDate,formatNumber,setSession,getSession,count } from '../libs/functions'
 import { api } from '../libs/api'
 import { openLoading, closeLoading } from '../components/loading'
 import { openMsg } from '../components/msg';
@@ -34,6 +36,7 @@ export default class extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      name:'',
       formConfig:this.getStdFormConfigState(),
       config:false,
       edit:false,
@@ -42,12 +45,14 @@ export default class extends React.Component {
       search:'',
       loading:false,
       idRef:false,
-      update:0
+      update:0,
+      statusField:'status'
     };
   }
 
   componentDidMount(){
     var state = {}
+    state.name = this.props.name
     if(this.props.api){
       state.list = []
       if(getSession('config',this.props.collection)){
@@ -68,6 +73,9 @@ export default class extends React.Component {
     if(this.props.idRef){
       state.idRef = this.props.idRef
     }
+    if(this.props.statusField){
+      state.statusField = this.props.statusField
+    }
     this.setState(state,this.getListData)
   }
 
@@ -80,11 +88,19 @@ export default class extends React.Component {
       if(this.state.list!=this.props.data){
         this.getListData()
       }
+    }else if(this.props.name!=this.state.name){
+      if(this.props.statusField){
+        this.setState({name:this.props.name,statusField:this.props.statusField},this.getListData)
+      }else{
+        this.setState({name:this.props.name},this.getListData)
+      }
     }
     if(this.props.update){
       if(this.props.update!=this.state.update){
         this.setState({update:this.props.update},this.getListData)
       }
+    }else if(this.props.name!=this.state.name){
+      this.setState({name:this.props.name},this.getListData)
     }
   }
 
@@ -101,7 +117,7 @@ export default class extends React.Component {
   getListData(condition){
     if(this.props.api){
       var data = {}
-      var status = {status:1}
+      var status = {[this.state.statusField]:1}
 
       data.condition = {}
       data.config = this.state.config
@@ -110,7 +126,7 @@ export default class extends React.Component {
       this.setState({loading:true})
 
       if(this.props.statusGte){
-        status = {status:{$gte:1}}
+        status = {[this.state.statusField]:{$gte:1}}
       }
       
       if(typeof condition === 'undefined'){
@@ -138,7 +154,7 @@ export default class extends React.Component {
             loading:false
           })
         }
-      })
+      },true)
     }
   }
 
@@ -150,6 +166,7 @@ export default class extends React.Component {
       mask:'',
       parameter:'',
       className:'',
+      width:'',
       align:'left',
       display:'false',
       searchable:'false',
@@ -208,7 +225,7 @@ export default class extends React.Component {
           openMsg({text:'Configuração salva com sucesso!',type:1})
         }  
         closeLoading()
-      })
+      },true)
     }else if(e.target.name=='cancel'){
       this.setState({
         formConfig:this.getStdFormConfigState()
@@ -224,9 +241,12 @@ export default class extends React.Component {
     });
   }
 
-  onClickCell = (e) => {
-    if(typeof this.props.callbackClickCell !== 'undefined'){
+  onClickCell = (e,callback) => {
+    if(this.props.callbackClickCell !== undefined && callback === undefined){
       this.props.callbackClickCell(e,this.state.list)
+    }
+    if(callback !== undefined){
+      callback(e,this.state.list)
     }
   }
 
@@ -276,11 +296,15 @@ export default class extends React.Component {
       var type = []
       var parameter = []
       var className = []
+      var width = []
       var align = []
       var display = []
       var searchable = []
       var countColumns = 0
       var data = []
+      var innerHTML = []
+      var name = []
+      var callback = []
 
       order = []
 
@@ -296,6 +320,7 @@ export default class extends React.Component {
           mask:configTemp[k].mask,
           parameter:configTemp[k].parameter,
           className:configTemp[k].className,
+          width:configTemp[k].width,
           align:configTemp[k].align,
           display:configTemp[k].display,
           searchable:configTemp[k].searchable,
@@ -317,6 +342,7 @@ export default class extends React.Component {
             type[k] = 'text'
             parameter[k] = []
             className[k] = []
+            width[k] = []
             align[k] = 'left'
             display[k] = 'false'
             searchable[k] = 'false'
@@ -347,6 +373,7 @@ export default class extends React.Component {
                   })
                 }
               }
+              width[k] = config[k].width
               type[k] = config[k].type
               align[k] = config[k].align
               display[k] = config[k].display
@@ -360,15 +387,72 @@ export default class extends React.Component {
         })
       })
 
+      function renderButtonTitle(button,key){
+        if(count(button)){
+          countA = countA + 1
+          button.map(b => {
+            if(b.order==countA){
+              display[key + b.name] = "true"
+              align[key + b.name] = b.align
+              type[key + b.name] = b.type
+              name[key + b.name] = b.name
+              innerHTML[key + b.name] = b.innerHTML
+              maskOrder[key + b.name] = b.label
+              callback[key + b.name] = b.callback
+
+              if(typeof b.className === 'string' ){
+                className[key + b.name] = b.className
+              }else if(b.classNameWhere === undefined){
+                className[key + b.name] = b.className[0]
+              }else{
+                data.map(data => {
+                  var classNameTemp = false
+                  b.classNameWhere.map(classNameWhere => {
+                    if(data[classNameWhere.where] !== undefined){
+                      if(classNameWhere.operator === undefined){
+                        if(data[classNameWhere.where]==classNameWhere.value){
+                          if(classNameWhere.classNumber === undefined){
+                            classNameTemp = 0
+                          }else{
+                            classNameTemp = classNameWhere.classNumber
+                          }
+                        }
+                      }else if(classNameWhere.operator == 'like'){
+                        if(data[classNameWhere.where].indexOf(classNameWhere.value)!=-1){
+                          if(classNameWhere.classNumber === undefined){
+                            classNameTemp = 0
+                          }else{
+                            classNameTemp = classNameWhere.classNumber
+                          }
+                        }
+                      }
+                    }
+                  })
+                  if(classNameTemp===false){
+                    className[key + b.name + data._id] = b.className[0]
+                  }else{
+                    className[key + b.name + data._id] = b.className[classNameTemp]
+                  }
+                })
+              }
+            }
+          })
+        }
+      }
+
+      var countA = 0
       var maskOrder = []
       if(this.props.order){
+        countA = 0
         Object.values(this.props.order).map(v => {
           if(typeof mask[v] !== 'undefined'){
+            renderButtonTitle(this.props.button,v)
             maskOrder[v] = mask[v]
           }
         })
         Object.keys(mask).map(k => {
           if(typeof maskOrder[k] === 'undefined'){
+            renderButtonTitle(this.props.button,k)
             maskOrder[k] = mask[k]
           }
         })
@@ -377,11 +461,13 @@ export default class extends React.Component {
         Object.values(order).map(v => {
           var vTemp = v.substr(v.indexOf("#")+1)
           if(typeof mask[vTemp] !== 'undefined'){
+            renderButtonTitle(this.props.button,vTemp)
             maskOrder[vTemp] = mask[vTemp]
           }
         })
         Object.keys(mask).map(k => {
           if(typeof maskOrder[k] === 'undefined'){
+            renderButtonTitle(this.props.button,k)
             maskOrder[k] = mask[k]
           }
         })
@@ -393,15 +479,30 @@ export default class extends React.Component {
         <>
           {this.props.search ? (
             <div className={this.props.margin + " form-row"}>
-              <div className={setCols(12,12,6,8,8) + " mb-2 mb-md-0 "}>
+              <div className={setCols(
+                12,
+                12,
+                ((this.props.withoutSeeAll !== undefined && 3) + (this.props.withoutRegister !== undefined && 3) + (this.props.withCancel === undefined && 3) + 3),
+                ((this.props.withoutSeeAll !== undefined && 2) + (this.props.withoutRegister !== undefined && 2) + (this.props.withCancel === undefined && 2) + 6),
+                ((this.props.withoutSeeAll !== undefined && 2) + (this.props.withoutRegister !== undefined && 2) + (this.props.withCancel === undefined && 2) + 6)
+                ) + " mb-2 mb-md-0 "}>
                 <input type="text" className="form-control" value={this.state.search} onChange={(e) => this.changeSearch(e)} onKeyDown={(e) => (e.key=="Enter" ? this.getListData() : null)} placeholder="Pesquise Aqui"/>
               </div>
-              <div className={setCols(12,6,3,2,2,1)}>
-                <button type="button" className={"btn " + (!this.state.seeAll ? "btn-secondary" : "btn-warning") + " btn-block"} onClick={() => this.changeSeeAll()}>{!this.state.seeAll ? "Ver Todos" : "Não Ver Todos"}</button>
-              </div>
-              <div className={setCols(12,6,3,2,2,1)}>
-                <button type="button" className="btn btn-primary btn-block" onClick={() => (this.props.callbackRegister ? this.props.callbackRegister() : null)}>+ Cadastrar</button>
-              </div>
+              {this.props.withoutSeeAll === undefined && (
+                <div className={setCols(12,4,3,2,2,1)}>
+                  <button type="button" className={"btn " + (!this.state.seeAll ? "btn-secondary" : "btn-warning") + " btn-block"} onClick={() => this.changeSeeAll()}>{!this.state.seeAll ? "Ver Todos" : "Não Ver Todos"}</button>
+                </div>
+              )}
+              {this.props.withoutRegister === undefined && (
+                <div className={setCols(12,4,3,2,2,1)}>
+                  <button type="button" className="btn btn-primary btn-block" onClick={() => (this.props.callbackRegister ? this.props.callbackRegister() : null)}>+ Cadastrar</button>
+                </div>
+              )}
+              {this.props.withCancel !== undefined && (
+                <div className={setCols(12,4,3,2,2,1)}>
+                  <button type="button" className="btn btn-warning btn-block" onClick={() => (this.props.callbackCancel ? this.props.callbackCancel() : null)}>Cancelar</button>
+                </div>
+              )}
             </div>
           ):null}
           <div className={this.props.margin}>
@@ -450,13 +551,17 @@ export default class extends React.Component {
                   <label>Order</label>
                   <input type="text" className="form-control" name="order" value={this.state.formConfig.order===false ? (order.length + 1) : this.state.formConfig.order} onChange={this.onChangeFormConfig}/>
                 </div>
-                <div className={setCols(12,12,6,4,4)}>
+                <div className={setCols(12,12,6,3,3)}>
                   <label>Parameter</label>
                   <input type="text" className="form-control" name="parameter" value={this.state.formConfig.parameter} onChange={this.onChangeFormConfig}/>
                 </div>
-                <div className={setCols(12,12,6,4,4)}>
+                <div className={setCols(12,12,6,3,3)}>
                   <label>Class</label>
                   <input type="text" className="form-control" name="className" value={this.state.formConfig.className} onChange={this.onChangeFormConfig}/>
+                </div>
+                <div className={setCols(12,12,6,2,2)}>
+                  <label>Width</label>
+                  <input type="text" className="form-control" name="width" value={this.state.formConfig.width} onChange={this.onChangeFormConfig}/>
                 </div>
                 <div className={setCols(6,6,3,2,2)}>
                   <label></label>
@@ -475,7 +580,7 @@ export default class extends React.Component {
                   {(!this.props.withoutTitle || this.props.editable) ? (
                     <thead>
                       <tr className="dtaTop">
-                        <th scope="col" colSpan={countColumns}>
+                        <th scope="col" colSpan={countColumns + count(this.props.button)}>
                           <div className="form-row mb-0">
                             <div align="left" className={setCols(6,6,6,6,6)}>
                               {this.state.loading===true ? (
@@ -500,7 +605,7 @@ export default class extends React.Component {
                       {Object.keys(maskOrder).map(k => (
                         (display[k]=="true" || this.state.edit==true) ? (
                           <th key={k} scope="col" className={display[k]=="true" ? "" : "stdRed"} onClick={() => this.onClick(maskOrder[k])}>
-                            <div align={align[k]}>
+                            <div align={align[k]} width={strlen(width[k]) ? width[k] : ''}>
                               {maskOrder[k]}
                             </div>
                           </th>
@@ -515,37 +620,45 @@ export default class extends React.Component {
                           (display[k]=="true" || this.state.edit==true) ? (
                             (k == 'id' || k=='_id') ? (
                               <th key={k} scope="row" name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                <div align={align[k]}>
+                                <div align={align[k]} style={strlen(width[k]) ? {width:`${width[k]}px`} : {}}>
                                   {data[k]}
                                 </div>
                               </th>
                             ):(
                               (type[k]=='text' && parameter[k].length>0) ? (
                                 <td key={k} className={typeof className[k] !== 'undefined' ? typeof className[k][data[k]] !== 'undefined' ? className[k][data[k]] : typeof className[k][0] !== 'undefined' ? className[k][0] : null : null} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                  <div align={align[k]}>
+                                  <div align={align[k]} style={strlen(width[k]) ? {width:`${width[k]}px`} : {}}>
                                     {typeof parameter[k] !== 'undefined' ? typeof parameter[k][data[k]] !== 'undefined' ? parameter[k][data[k]] : typeof parameter[k][0] !== 'undefined' ? parameter[k][0] : null : null}
                                   </div>
                                 </td>
                               ):(
                                 (type[k]=='date' || type[k]=='date abb 1') ? ( 
                                   <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                    <div align={align[k]}>
+                                    <div align={align[k]} style={strlen(width[k]) ? {width:`${width[k]}px`} : {}}>
                                       {formatDate(data[k],type[k])}
                                     </div>
                                   </td>
                                 ):(
                                   (type[k]=='number') ? ( 
                                     <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                      <div align={align[k]}>
+                                      <div align={align[k]} style={strlen(width[k]) ? {width:`${width[k]}px`} : {}}>
                                         {formatNumber(data[k])}
                                       </div>
                                     </td>
                                   ):(
-                                    <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
-                                      <div align={align[k]}>
-                                        {data[k]}
-                                      </div>
-                                    </td>
+                                    (type[k]=='button') ? ( 
+                                      <td key={k} name={data['_id'] + '#' + k}>
+                                        <div align={align[k]} style={strlen(width[k]) ? {width:`${width[k]}px`} : {}}>
+                                          <button type="button" name={name[k]} className={"btn " + (className[k + data['_id']] === undefined ? className[k] : className[k + data['_id']])} onClick={() => this.onClickCell(data['_id'],callback[k])}>{innerHTML[k]}</button>
+                                        </div>
+                                      </td>
+                                    ):(
+                                      <td key={k} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
+                                        <div align={align[k]} style={strlen(width[k]) ? {width:`${width[k]}px`} : {}}>
+                                          {data[k]}
+                                        </div>
+                                      </td>
+                                    )
                                   )
                                 )
                               )

@@ -99,7 +99,7 @@ export default class extends React.Component {
                     <div className="input-group">
                         <div className="input-group-prepend">
                             <div name={"base" + this.props.name} className={"input-group-text form-control-checkbox" + (this.props.value==1 ? ' stdRed' : '')}>
-                                <input type="checkbox" name={this.props.name} checked={this.props.value==1 ? true : false} onChange={this.change} />
+                                <input type="checkbox" name={this.props.name} checked={this.props.value==1 ? true : false} onChange={this.change}  disabled={this.props.disabled ? true : false}/>
                             </div>
                         </div>
                         <div className={"checkboxText form-control" + (this.props.value==1 ? ' stdRed' : '')} name={"texto" + this.props.name}>

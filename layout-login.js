@@ -2,8 +2,9 @@ import Head from 'next/head'
 import Version from '../version-app'
 import Loading from './loading'
 import Msg, { openMsg } from './msg'
-import { setCols,setSubState,setSession,getSession,unSetSession } from '../libs/functions'
+import { setCols,setSubState,setSession,getSession,unSetSession,count } from '../libs/functions'
 import Router from 'next/router'
+import { api,getHostApi,getTokenApi } from '../libs/api'
 
 const now = new Date();
 
@@ -16,36 +17,31 @@ export default class extends React.Component {
 
   onClickFormLogin = (e) => {
     if(e.target.name=="login"){
-      // API autenticacao
-      if(0){
-        var res = {
-          res: 'error',
-          error:'Usuário ou Senha Inválido'
+      var data = {}
+      data.user = this.user.current.value
+      data.pass = this.pass.current.value
+      api(getHostApi() + 'api/login',getTokenApi(),data,(res) => {
+        if(res.error){
+          openMsg({text:res.error,type:-1})
+        }else{
+          const user = {
+            token:res.data[0].token,
+            branch:res.data[0].branch,
+            access:res.data[0].access,
+            user:res.data[0].user,
+            userName:res.data[0].userName,
+            userFullName:res.data[0].userFullName,
+            userCpfCnpj:res.data[0].cpfCnpj,
+            type:res.data[0].type,
+            branchSelected:(count(res.data[0].branch)>1 ? -1: 0)
+          }
+          console.log(user)
+          if(setSession("userData",user)){
+            unSetSession("menu","home")
+            Router.push('/')
+          }
         }
-      }else{
-        var res = {
-          res: 'success'
-        }
-      }
-      // Fim - API autenticacao
-
-      if(res.res=='error'){
-        openMsg({text:res.error,type:-1})
-      }else{
-        const user = {
-          token:'token123',
-          branch:1,
-          branchName:'Pratic Plasticos',
-          login:this.user.current.value,
-          user:1,
-          userName:'Cleiton',
-          type:'admin'
-        }
-        if(setSession("userData",user)){
-          unSetSession("menu","home")
-          Router.push('/')
-        }
-      }
+      })
     }
   }
 
@@ -88,11 +84,11 @@ export default class extends React.Component {
                     </div>
                     <div className={setCols(12,12,12,12,12)}>
                       <label>Usuário</label>
-                      <input type="text" ref={this.user} className="form-control text-center"/>
+                      <input type="text" ref={this.user} className="form-control text-center" />
                     </div>
                     <div className={setCols(12,12,12,12,12)}>
                       <label>Senha</label>
-                      <input type="password" ref={this.pass} name="pass" className="form-control text-center"/>
+                      <input type="password" ref={this.pass} name="pass" className="form-control text-center" />
                     </div>
                     <div className={setCols(12,12,12,12,12)}>
                       <label></label>
