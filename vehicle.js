@@ -209,6 +209,7 @@ export default class extends React.Component {
                 />
 
                 <Dta 
+                    idRef={this.props.idRef}
                     update={this.state.update}
                     margin='mt-3'
                     collection='cadastro_veiculo'

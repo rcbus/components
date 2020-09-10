@@ -11,8 +11,8 @@ Importe este arquivo como style global no arquivo pages/_app.js
   height:100%;
   position: fixed;
   background-color: rgba(0,40,70,0.95);
-  z-index: 900;
   display: none;
+  z-index: 900;
   top:0px;
   align-items: center;
   text-align: center;

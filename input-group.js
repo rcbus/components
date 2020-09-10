@@ -293,9 +293,13 @@ export default class extends React.Component {
                 <div className={this.props.cols}>
                     {this.props.label ? <label>{this.props.label}</label> : null}
                     <div className="input-group">
-                        <input type="text" name={this.props.name} className="form-control cursor" value={this.props.value} placeholder={this.props.placeholder ? this.props.placeholder : null} onClick={() => this.open()} readOnly={true}/>
+                        {!this.props.textarea ? (
+                            <input type="text" name={this.props.name} className="form-control cursor" value={this.props.value} placeholder={this.props.placeholder ? this.props.placeholder : null} onClick={() => this.open()} readOnly={true} disabled={this.props.disabled ? true : false}/>
+                        ):(
+                            <textarea rows={!this.props.rows ? 5 : this.props.rows} name={this.props.name} className="form-control cursor" value={this.props.value} placeholder={this.props.placeholder ? this.props.placeholder : null} onClick={() => this.open()} readOnly={true} disabled={this.props.disabled ? true : false}></textarea>
+                        )}
                         <div className="input-group-append">
-                            <button className={"btn btn-danger"} type="button" name={"desactive_" + this.props.name} onClick={() => this.click()} disabled={(strlen(this.props.value)==0 ? true : false)}>Excluir</button>
+                            <button className={"btn btn-danger"} type="button" name={"desactive_" + this.props.name} onClick={() => this.click()} disabled={(strlen(this.props.value)==0 ? true :  this.props.disabled ? true : false)}>Excluir</button>
                         </div>
                     </div>
                 </div>

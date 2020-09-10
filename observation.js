@@ -26,6 +26,7 @@ export default class extends React.Component {
                     <>Informe o callbackSetList</>
                 ):(
                     <Form 
+                        disabled={this.props.disabled ? true : false}
                         name={this.props.name}
                         api={this.props.api}
                         data={this.props.data}
@@ -38,7 +39,7 @@ export default class extends React.Component {
                         content={[
                             {
                                 cols:setCols(12,12,12,12,12),
-                                name:'observation',
+                                name:(this.props.name ? this.props.name : 'observation'),
                                 type:'textarea'
                             }
                         ]}
@@ -48,7 +49,7 @@ export default class extends React.Component {
                                 type:'button',
                                 className:'btn-lg btn-success btn-block mt-3',
                                 name:'save',
-                                innerHTML:'Salvar Observação'
+                                innerHTML:(this.props.saveButtonText ? this.props.saveButtonText : 'Salvar Observação')
                             }
                         ]}
                     />
