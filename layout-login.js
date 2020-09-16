@@ -15,6 +15,10 @@ export default class extends React.Component {
     this.pass = React.createRef();
   }
 
+  componentDidMount(){
+    this.user.current.focus();
+  }
+
   onClickFormLogin = (e) => {
     if(e.target.name=="login"){
       var data = {}
