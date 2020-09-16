@@ -285,7 +285,7 @@ export default class extends React.Component {
             openMsg({text:(this.verifyMsgSuccess('c') ? this.verifyMsgSuccess('c') : 'Dados cadastrados com sucesso!'),type:1})
           }
         }else{
-          if(this.verifyMsgSuccess('c')!=''){
+          if(this.verifyMsgSuccess('u')!=''){
             openMsg({text:(this.verifyMsgSuccess('u') ? this.verifyMsgSuccess('u') : 'Dados alterados com sucesso!'),type:1})
           }
         }
@@ -373,6 +373,11 @@ export default class extends React.Component {
         if(this.props.msg[e].confirm){
           if(this.props.msg[e].confirm.length>0){
             msg = this.props.msg[e].confirm
+            Object.keys(this.props.data).map(k => {
+              if(msg.indexOf('@' + k + '#')!=-1){
+                msg = msg.replace('@' + k + '#',this.props.data[k])
+              }
+            })
           }else{
             msg = ''
           }
@@ -396,8 +401,10 @@ export default class extends React.Component {
     return msg
   }
 
-  getData = (k,t,p) => {
-    if(verifyVariable(this.props.data[k])){
+  getData = (k,t,p,v) => {
+    if(verifyVariable(v)){
+      return v
+    }else if(verifyVariable(this.props.data[k])){
       var data = this.props.data
       if(t=='number'){
         if(p !== undefined){
@@ -509,31 +516,31 @@ export default class extends React.Component {
                         
                         <div className="btn-group special">
                           <button type="button" name="prev" className="btn btn-secondary" disabled={this.verifyPrev()} onClick={() => this.prev()}>{"<"}</button>
-                          <button type="button" name={c.name} className="middle btn btn-outline-dark" disabled>{this.getData(c.name,c.type,c.precision)}</button>
+                          <button type="button" name={c.name} className="middle btn btn-outline-dark" disabled>{this.getData(c.name,c.type,c.precision,c.value)}</button>
                           <button type="button" name="next" className="btn btn-secondary" disabled={this.verifyNext()} onClick={() => this.next()}>{">"}</button>
                         </div>
 
                       ):c.type=='status' ? (
 
                         <div>
-                          <div className={"std form-control text-center " + c.className[this.getData(c.name,c.type,c.precision)]}>{c.mask[this.getData(c.name,c.type,c.precision)]}</div>
+                          <div className={"std form-control text-center " + c.className[this.getData(c.name,c.type,c.precision,c.value)]}>{c.mask[this.getData(c.name,c.type,c.precision,c.value)]}</div>
                         </div>
 
                       ):c.type=='text' ? (
                       
-                        <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false}/>
+                        <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false}/>
                       
                       ):c.type=='number' ? (
                       
-                        <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false}/>
+                        <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false}/>
                       
                       ):c.type=='textarea' ? (
                       
-                        <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false}></textarea>
+                        <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false}></textarea>
                       
                       ):c.type=='select' ? (
 
-                        <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision)} disabled={c.readOnly ? true : this.props.disabled ? true : false}>
+                        <select ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.changeSelect} value={this.getData(c.name,c.type,c.precision,c.value)} disabled={c.readOnly ? true : this.props.disabled ? true : false}>
                           {typeof c.optionNull !== 'undefined' ? (typeof c.optionNullDisabled !== 'undefined' ? (
                             <option value="" disabled={true} hidden={true}>{ typeof c.optionNull === 'string' ? c.optionNull : '' }</option>
                           ):( 
@@ -546,11 +553,11 @@ export default class extends React.Component {
 
                       ):c.type=='date' || c.type=='datetime' || c.type=='datetimes' ? (
                                           
-                        <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false}/>
+                        <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false}/>
                       
                       ):strlower(c.type)=='checkboxgroup' ? (
 
-                        <CheckboxGroup name={c.name} text={verifyVariable(c.text) ? c.text : ''} callbackChange={(e) => { this.change(e),(verifyVariable(c.callback) && c.callback(e)) }} value={this.getData(c.name,c.type,c.precision)}  disabled={this.props.disabled ? true : false}/>
+                        <CheckboxGroup name={c.name} text={verifyVariable(c.text) ? c.text : ''} callbackChange={(e) => { this.change(e),(verifyVariable(c.callback) && c.callback(e)) }} value={this.getData(c.name,c.type,c.precision,c.value)}  disabled={this.props.disabled ? true : false}/>
                       
                       ):strlower(c.type)=='inputgroup' ? (
 

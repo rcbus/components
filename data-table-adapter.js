@@ -294,7 +294,7 @@ export default class extends React.Component {
       var config = []
       var mask = []
       var type = []
-      var parameter = []
+      var parameter = {}
       var className = []
       var width = []
       var align = []
@@ -340,7 +340,7 @@ export default class extends React.Component {
           if(typeof mask[k] === 'undefined'){
             mask[k] = k
             type[k] = 'text'
-            parameter[k] = []
+            parameter[k] = {}
             className[k] = []
             width[k] = []
             align[k] = 'left'
@@ -357,7 +357,7 @@ export default class extends React.Component {
                 }else{  
                   var parameterTemp = config[k].parameter.split(',')  
                   Object.values(parameterTemp).map(v => {
-                    if(typeof parameter[k] === 'undefined'){ parameter[k] = [] }
+                    if(typeof parameter[k] === 'undefined'){ parameter[k] = {} }
                     parameter[k][v.substr(0,v.indexOf("#"))] = v.substr(v.indexOf("#")+1)
                   })
                 }
@@ -625,7 +625,7 @@ export default class extends React.Component {
                                 </div>
                               </th>
                             ):(
-                              (type[k]=='text' && parameter[k].length>0) ? (
+                              (type[k]=='text' && count(parameter[k])>0) ? (
                                 <td key={k} className={typeof className[k] !== 'undefined' ? typeof className[k][data[k]] !== 'undefined' ? className[k][data[k]] : typeof className[k][0] !== 'undefined' ? className[k][0] : null : null} name={data['_id'] + '#' + k} onClick={() => this.onClickCell(data['_id'])}>
                                   <div align={align[k]} style={strlen(width[k]) ? {width:`${width[k]}px`} : {}}>
                                     {typeof parameter[k] !== 'undefined' ? typeof parameter[k][data[k]] !== 'undefined' ? parameter[k][data[k]] : typeof parameter[k][0] !== 'undefined' ? parameter[k][0] : null : null}
