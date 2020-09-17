@@ -59,6 +59,10 @@ export default class extends React.Component {
       if(this.props.callbackCancel){
         this.props.callbackCancel()
       }
+    }else{
+      if(this.props.callbackAll){
+        this.props.callbackAll(e)
+      }
     }
   }
 

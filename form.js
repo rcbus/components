@@ -505,7 +505,7 @@ export default class extends React.Component {
             <div className={!this.props.withoutMargin ? "form-base form-row" : "form-base withoutMargin form-row"}>
               {(verifyVariable(this.props.slide)===false || this.props.slide === true) &&
                 Object.values(this.props.content).map(c => (
-                  (c.where ? this.verifyWhere(c.where) : true) ? (  
+                  (c.where ? this.verifyWhere(c.where) : (verifyVariable(c.name) ? true : false)) ? (  
                     <div key={c.name} className={c.cols + " " + this.props.margin}>
 
                       {c.label ? (

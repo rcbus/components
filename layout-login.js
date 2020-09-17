@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Version from '../version-app'
 import Loading from './loading'
 import Msg, { openMsg } from './msg'
-import { setCols,setSubState,setSession,getSession,unSetSession,count } from '../libs/functions'
+import { setCols,setSubState,setSession,getSession,unSetSession,count,keyboardEvent } from '../libs/functions'
 import Router from 'next/router'
 import { api,getHostApi,getTokenApi } from '../libs/api'
 
@@ -17,35 +17,40 @@ export default class extends React.Component {
 
   componentDidMount(){
     this.user.current.focus();
+    keyboardEvent(this.onKey)
   }
 
-  onClickFormLogin = (e) => {
-    if(e.target.name=="login"){
-      var data = {}
-      data.user = this.user.current.value
-      data.pass = this.pass.current.value
-      api(getHostApi() + 'api/login',getTokenApi(),data,(res) => {
-        if(res.error){
-          openMsg({text:res.error,type:-1})
-        }else{
-          const user = {
-            token:res.data[0].token,
-            branch:res.data[0].branch,
-            access:res.data[0].access,
-            user:res.data[0].user,
-            userName:res.data[0].userName,
-            userFullName:res.data[0].userFullName,
-            userCpfCnpj:res.data[0].cpfCnpj,
-            type:res.data[0].type,
-            branchSelected:(count(res.data[0].branch)>1 ? -1: 0)
-          }
-          console.log(user)
-          if(setSession("userData",user)){
-            unSetSession("menu","home")
-            Router.push('/')
-          }
+  onClickFormLogin = () => {
+    var data = {}
+    data.user = this.user.current.value
+    data.pass = this.pass.current.value
+    api(getHostApi() + 'api/login',getTokenApi(),data,(res) => {
+      if(res.error){
+        openMsg({text:res.error,type:-1})
+      }else{
+        const user = {
+          token:res.data[0].token,
+          branch:res.data[0].branch,
+          access:res.data[0].access,
+          user:res.data[0].user,
+          userName:res.data[0].userName,
+          userFullName:res.data[0].userFullName,
+          userCpfCnpj:res.data[0].cpfCnpj,
+          type:res.data[0].type,
+          branchSelected:(count(res.data[0].branch)>1 ? -1: 0)
         }
-      })
+        console.log(user)
+        if(setSession("userData",user)){
+          unSetSession("menu","home")
+          Router.push('/')
+        }
+      }
+    })
+  }
+
+  onKey = (e) => {
+    if(e=="Enter"){
+      this.onClickFormLogin()
     }
   }
 
@@ -96,7 +101,7 @@ export default class extends React.Component {
                     </div>
                     <div className={setCols(12,12,12,12,12)}>
                       <label></label>
-                      <button type="button" name="login" className="btn btn-lg btn-primary btn-block" onClick={this.onClickFormLogin}>Entrar</button>
+                      <button type="button" name="login" className="btn btn-lg btn-primary btn-block" onClick={() => this.onClickFormLogin()}>Entrar</button>
                     </div>
                   </form>
                 </div>
