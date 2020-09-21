@@ -528,15 +528,15 @@ export default class extends React.Component {
 
                       ):c.type=='text' ? (
                       
-                        <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false}/>
+                        <input type="text" ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false} onClick={(e) => this.click(e,c.callback)}/>
                       
                       ):c.type=='number' ? (
                       
-                        <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false}/>
+                        <input type="number" step={this.step(c.precision)} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} onKeyDown={(e) => this.handleKeyDown(e,c.callback)} disabled={this.props.disabled ? true : false} onClick={(e) => this.click(e,c.callback)}/>
                       
                       ):c.type=='textarea' ? (
                       
-                        <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false}></textarea>
+                        <textarea ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} rows={c.rows ? c.rows : "5"} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false} onClick={(e) => this.click(e,c.callback)}></textarea>
                       
                       ):c.type=='select' ? (
 
@@ -553,7 +553,7 @@ export default class extends React.Component {
 
                       ):c.type=='date' || c.type=='datetime' || c.type=='datetimes' ? (
                                           
-                        <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false}/>
+                        <input type={c.type=='date' ? 'date' : 'datetime-local'} step={c.type=='date' || c.type=='datetime' ? '' : '1'} ref={c.focus ? this.focus : null} name={c.name} className={"form-control " + c.className} onChange={this.change} value={this.getData(c.name,c.type,c.precision,c.value)} autoFocus={c.focus ? true : false} readOnly={c.readOnly ? true : false} disabled={this.props.disabled ? true : false} onClick={(e) => this.click(e,c.callback)}/>
                       
                       ):strlower(c.type)=='checkboxgroup' ? (
 
